@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="login_error" name="Login Error">
+        <t t-call="web.layout">
+            <div class="container mt-5">
+                <div class="alert alert-danger text-center">
+                    <h4>Your account is deactivated , please contact admin</h4>
+                    <p><t t-esc="error"/></p>
+                    <a href="/web/login" class="btn btn-primary mt-3">Back to Login</a>
+                </div>
+            </div>
+        </t>
+    </template>
+    <template id="user_list_template" name="User List Page">
+    <t t-call="website.layout">
+        <t t-set="title">User List</t>
+        <div class="container mt-4">
+
+            <!-- Header with breadcrumb and buttons aligned in one row -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <!-- Breadcrumb -->
+                <nav aria-label="breadcrumb" class="mb-0">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item">
+                            <a href="#"><i class="bi bi-house-door"></i> Home</a>
+                        </li>
+                        <li class="breadcrumb-item active" aria-current="page">User</li>
+                    </ol>
+                </nav>
+
+                <!-- Action Buttons -->
+                <div class="d-flex gap-2">
+                    <a href="/Dashboard" class="btn btn-dark">← Back</a>
+                    <a href="/users/create" class="btn btn-dark">+ Create</a>
+                </div>
+            </div>
+
+            <!-- DataTables CSS -->
+            <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css"/>
+        <div>
+            <div style="padding:15px; background:white;">
+            <table id="userTable" class="display table table-striped" >
+                <thead>
+                    <tr>
+                        <th>S No</th>
+                        <th>Name</th>
+                        <th>User Name</th>
+                        <th>User Role</th>  
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <t t-foreach="users" t-as="user" >
+                        <tr>
+                            <td><t t-esc="user.id"/></td>
+                            <!-- <td><t t-esc="user.name"/></td> -->
+                            <td>
+                                <a t-att-href="'/users/impersonate/%s' % user.id" class="text-primary" style="cursor:pointer;">
+                                    <t t-esc="user.name"/>
+                                </a>
+                            </td>
+                            <td><t t-esc="user.login"/></td>
+                            <td>
+                                <t t-set="role_names" 
+                                    t-value="', '.join([g.name for g in user.groups_id if g.ismy])"/>
+                                <t t-esc="role_names or 'No Group'"/>
+                                
+                            </td>
+                            <td>
+                                <span t-attf-class="text-#{'success' if user.active else 'danger'}">
+                                    <t t-esc="'Active' if user.active else 'Inactive'"/>
+                                </span>
+                            </td>
+                            <td>
+                                <a t-att-href="'/users/edit/%s' % user.id" class="btn btn-sm btn-primary">
+                                    Edit
+                                </a>
+                            </td>
+                        </tr>
+                    </t>
+
+                </tbody>
+            </table>
+            </div>
+        </div>
+
+            <!-- jQuery & DataTables JS -->
+            <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+            <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+            <script>
+                $(document).ready(function() {
+                    $('#userTable').DataTable({
+                        <!-- responsive: true, -->
+                        pageLength: 10,
+                        <!-- lengthChange: false -->
+                    });
+                });
+            </script>
+        </div>
+    </t>
+</template>
+
+
+
+
+
+    <template id="user_form_template" name="User Create Page">
+        <t t-call="website.layout">
+            <div class="container mt-5 p-3 shadow rounded bg-white">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 class="mb-0">User</h2>
+                    <a href="/users" class="btn btn-dark"> Back</a>
+                </div>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="/">Home</a></li>
+                        <li class="breadcrumb-item"><a href="/users">List</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Add</li>
+                    </ol>
+                </nav>
+                <t t-if="request.params.get('error') == 'user_duplicate'"> 
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        This user name already exist. 
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            </t>
+                <form action="/users/submit" method="post" class="mt-3">
+                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                    <div class="form-group">
+                        <label>Name</label>
+                        <input type="text" name="user_name" class="form-control" placeholder="Name" required="true"/>
+                    </div>
+                    <div class="form-group mt-3">
+                        <label>User Name</label>
+                        <input type="text" name="username" class="form-control" placeholder="User name" required="true"/>
+                    </div>
+                    <div class="form-group mt-3">
+                        <label>User Password</label>
+                        <input type="password" name="password" class="form-control" placeholder="User Password" required="true"/>
+                    </div>
+                    <div class="form-group mt-3">
+                        <label>User Role</label>
+                        <select name="role_id" class="form-control" required="true">
+                            <option value="">Select Role</option>
+                            <t t-foreach="users" t-as="role">
+                                <option t-att-value="role.id"><t t-esc="role.name"/></option>
+                            </t>
+                        </select>
+                    </div>
+                    <div class="form-group mt-3">
+                        <label>User Location</label>
+                        <select name="location" class="form-control" required="true" >
+                            <option value="">Select City</option>
+                            <t t-foreach="cities" t-as="city">
+                                <option t-att-value="city.id"><t t-esc="city.name"/></option>
+                            </t>
+
+                        </select>
+                    </div>
+                    <div class="form-group mt-3">
+                        <label>Status</label>
+                        <select name="status" class="form-control">
+                            <option value="active" >Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+                    <div class="mt-4 text-end">
+                        <button type="submit" class="btn btn-dark">Submit</button>
+                        <a href="/users" class="btn btn-light border ms-2">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </t>
+    </template>
+    <template id="user_edit_template" name="User Edit Page">
+    <t t-call="website.layout">
+        <div class="container mt-5 p-3 shadow rounded bg-white">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0">Edit User</h2>
+                <a href="/users" class="btn btn-dark"> Back</a>
+            </div>
+
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/">Home</a></li>
+                    <li class="breadcrumb-item"><a href="/users">List</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Edit</li>
+                </ol>
+            </nav>
+
+            <form t-att-action="'/users/update/%s' % user.id" method="post" class="mt-3">
+                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+
+                <!-- Name -->
+                <div class="form-group">
+                    <label>Name</label>
+                    <input type="text" name="user_name" class="form-control" placeholder="Name"
+                           t-att-value="user.name" required="true"/>
+                </div>
+
+                <!-- Username -->
+                <div class="form-group mt-3">
+                    <label>User Name</label>
+                    <input type="text" name="username" class="form-control" placeholder="User name"
+                           t-att-value="user.login" required="true" readonly="true"/>
+                </div>
+
+                <!-- Password (Optional for Edit) -->
+                <div class="form-group mt-3">
+                    <label>User Password</label>
+                    <input type="password" name="password" class="form-control"
+                           placeholder="Leave blank to keep unchanged"/>
+                </div>
+
+                <!-- Role -->
+                <div class="form-group mt-3">
+                    <label>User Role</label>
+                    <select name="role_id" class="form-control" required="true">
+                        <option value="">Select Role</option>
+                        <t t-foreach="roles" t-as="role">
+                            <option t-att-value="role.id"
+                                    t-att-selected="role.id in user.groups_id.ids">
+                                <t t-esc="role.name"/>
+                            </option>
+                        </t>
+                    </select>
+                </div>
+
+                <!-- Location -->
+                <div class="form-group mt-3">
+                    <label>User Location</label>
+                    <select name="location" class="form-control" required="true">
+                        <option value="">Select City</option>
+                        <t t-foreach="cities" t-as="city">
+                            <option t-att-value="city.id" t-att-selected="city.id == user.location.id">
+                                <t t-esc="city.name"/>
+                            </option>
+                        </t>
+                    </select>
+                </div>
+
+                <!-- Status -->
+                <div class="form-group mt-3">
+                    <label>Status</label>
+                    <select name="status" class="form-control">
+                        <option value="active" t-att-selected="user.active">Active</option>
+                        <option value="inactive" t-att-selected="not user.active">Inactive</option>
+                    </select>
+                </div>
+
+                <div class="mt-4 text-end">
+                    <button type="submit" class="btn btn-dark">Update</button>
+                    <a href="/users" class="btn btn-light border ms-2">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </t>
+</template>
+
+
+
+</odoo>

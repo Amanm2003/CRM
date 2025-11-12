@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="quotation_sale_form" name="Quotation Sale Form">
+        <t t-call="website.layout">
+            <div class="container my-5">
+                <div class="card p-4 shadow rounded">
+                    <h3 class="mb-3">Quotation</h3>
+
+                    <form action="/quotation/submit" method="post">
+                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()" />
+
+                        <div class="mb-3">
+                            <label class="form-label">Lead Name</label>
+                            <select name="lead_id" class="form-select" required="true" onchange="autofillLeadDetails(this)">
+                                <t t-foreach="leads" t-as="lead">
+                                    <option 
+                                        t-att-value="lead.id"
+                                        t-att-data-name="lead.name"
+                                        t-att-data-phone="lead.phone"
+                                        t-att-data-city="lead.city"
+                                        t-att-data-email="lead.email_from">
+                                        <t t-esc="lead.name"/> [<t t-esc="lead.phone"/>]
+                                    </option>
+                                </t>
+                            </select>
+                        </div>
+
+                        <div class="mb-3"><label class="form-label">Name</label><input type="text" name="name" id="name" class="form-control" required="true"/></div>
+                        <div class="mb-3"><label class="form-label">Mobile No</label><input type="text" name="mobile" id="phone" class="form-control"/></div>
+                        <div class="mb-3"><label class="form-label">City</label><input type="text" name="city" id="city" class="form-control"/></div>
+                        <div class="mb-3"><label class="form-label">Email ID</label><input type="email" name="email" id="email" class="form-control"/></div>
+                        <div class="mb-3"><label class="form-label">Created By</label><input type="text" name="created_by" class="form-control" t-att-value="user"/></div>
+                        <div class="mb-3"><label class="form-label">Date</label><input type="date" name="date_order" class="form-control" /></div>
+                        <div class="mb-3"><label class="form-label">Installation</label><input type="text" name="installation" class="form-control"/></div>
+                        <div class="mb-3"><label class="form-label">Travel Height</label><input type="text" name="travel_height" class="form-control"/></div>
+                        <div class="mb-3"><label class="form-label">Pit/Ramp</label><input type="text" name="pit_ramp" class="form-control"/></div>
+                        <div class="mb-3"><label class="form-label">Minimum headroom</label><input type="text" name="minimum_headroom" class="form-control"/></div>
+                        <div class="mb-3"><label class="form-label">Capacity</label><input type="text" name="capacity" class="form-control"/></div>
+                        <div class="mb-3"><label class="form-label">Motor</label><input type="text" name="motor" class="form-control"/></div>
+                        <div class="mb-3"><label class="form-label">Speed</label><input type="text" name="speed" class="form-control"/></div>
+                        <div class="mb-3"><label class="form-label">Power Supply</label><input type="text" name="power_supply" class="form-control"/></div>
+                        <div class="mb-3"><label class="form-label">Power Absorption</label><input type="text" name="power_absorption" class="form-control"/></div>
+                        <div class="mb-3"><label class="form-label">Stops</label><input type="text" name="stops" class="form-control"/></div>
+                        <div class="mb-3"><label class="form-label">COP</label><input type="text" name="cop" class="form-control"/></div>
+                        <div class="mb-3"><label class="form-label">Cabin size</label><input type="text" name="cabin_size" class="form-control"/></div>
+                        <div class="mb-3"><label class="form-label">Flooring</label><input type="text" name="flooring" class="form-control"/></div>
+                        <div class="mb-3"><label class="form-label">Cabin Walls</label><input type="text" name="cabin_walls" class="form-control"/></div>
+                        <div class="mb-3"><label class="form-label">Cabin Panel</label><input type="text" name="cabin_panel" class="form-control"/></div>
+                        <div class="mb-3"><label class="form-label">Required Shaft Space</label><input type="text" name="required_shaft_space" class="form-control"/></div>
+                        <div class="mb-3"><label class="form-label">No Of Floors</label><input type="text" name="no_of_floors" class="form-control"/></div>
+                        <div class="mb-3"><label class="form-label">Total Price</label><input type="text" name="amount_total" class="form-control"/></div>
+                        <div class="mb-3"><label class="form-label">Time Of Delivery</label><input type="date" name="commitment_date" class="form-control"/></div>
+                        <div class="mb-3"><label class="form-label">Warranty</label><input type="text" name="warranty" class="form-control"/></div>
+
+                        <div class="d-flex justify-content-end">
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                            <a href="javascript:history.back()" class="btn btn-dark ms-2">← Back</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <script>
+                function autofillLeadDetails(selectElement) {
+                    const selectedOption = selectElement.options[selectElement.selectedIndex];
+                    document.getElementById("name").value = selectedOption.getAttribute("data-name") || '';
+                    document.getElementById("phone").value = selectedOption.getAttribute("data-phone") || '';
+                    document.getElementById("city").value = selectedOption.getAttribute("data-city") || '';
+                    document.getElementById("email").value = selectedOption.getAttribute("data-email") || '';
+                }
+
+                window.addEventListener('DOMContentLoaded', function () {
+                    const select = document.querySelector('select[name="lead_id"]');
+                    if (select &amp;&amp; select.selectedIndex &#62;= 0) {
+                        autofillLeadDetails(select);
+                    }
+                });
+            </script>
+        </t>
+    </template>
+
+
+    <template id="quotation_list_view" name="Quotation List View with DataTable">
+    <t t-call="website.layout">
+        <div class="container my-5">
+            <div class="card p-4 shadow rounded">
+
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3 class="mb-0">Quotation List</h3>
+                    <div>
+                        <a href="/Dashboard" class="btn btn-secondary">
+                            <i class="fa fa-arrow-left"></i> Back
+                        </a>
+                    </div>
+                </div>
+                <div>
+                <!-- Table with DataTable -->
+                <div  style="padding:15px; background:white;">
+                    <table id="quotation_table" class="table table-bordered table-striped">
+                        <thead class="table-light">
+                            <tr>
+                                <th>#</th>
+                                <th>Lead Name</th>
+                                <th>Phone</th>
+                                <th>Quotation</th>
+                                <th>Stage 1</th>
+                                <th>Stage 2</th>
+                                <th>Stage 3</th>
+                                <th>Stage 4</th>
+                                <th>Stage 5</th>
+                                <th>Stage 6</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="followups" t-as="f" t-foreach-index="f_index">
+                                <tr>
+                                    <td><t t-esc="f_index + 1"/></td>
+                                    <td><t t-esc="f.lead_id.name"/></td>
+                                    <td><t t-esc="f.mobile or 'N/A'"/></td>
+
+                                    <!-- Set attachments -->
+                                    <t t-set="attachments" t-value="request.env['ir.attachment'].sudo().search([('res_model','=','lead.followup'), ('res_id','=',f.id)])"/>
+
+                                    <!-- Quotation -->
+                                    <td>
+                                        <t t-foreach="attachments" t-as="att">
+                                            <t t-if="att.description and 'Stage: Quotation' in att.description">
+                                                <a t-att-href="'/web/content/%s?download=true' % att.id" target="_blank" title="Download Quotation">
+                                                    <i class="fa fa-download text-primary"></i>
+                                                </a>
+                                            </t>
+                                            
+                                        </t>
+                                        <!-- <t t-if="not attachmnets and attachments.description and 'Stage: Quotation' not in att.description">
+                                            <span class='text-muted'>—</span>
+                                        </t> -->
+                                        
+                                    </td>
+
+                                    <!-- Stage 1 to Stage 6 -->
+                                    <t t-foreach="['Stage 1','Stage 2','Stage 3','Stage 4','Stage 5','Stage 6']" t-as="stage_label">
+                                        <td>
+                                            <t t-set="stage_found" t-value="False"/>
+                                            <t t-foreach="attachments" t-as="att">
+                                                <t t-if="att.description and ('Stage: ' + stage_label) in att.description">
+                                                    <a t-att-href="'/web/content/%s?download=true' % att.id" target="_blank" t-att-title="'Download ' + stage_label">
+                                                        <i class="fa fa-download text-success"></i>
+                                                    </a>
+                                                    <t t-set="stage_found" t-value="True"/>
+                                                </t>
+                                            </t>
+                                            <t t-if="not stage_found">
+                                                <span class="text-muted">—</span>
+                                            </t>
+                                        </td>
+                                    </t>
+                                </tr>
+
+                            </t>
+                        </tbody>
+
+                        <!-- <tbody>
+                            <t t-if="followups">
+                                <t t-foreach="followups" t-as="followup" t-foreach-index="idx">
+                                    <tr>
+                                        <td><t t-esc="idx + 1"/></td>
+                                        <td><t t-esc="followup.lead_id.name or ''"/></td>
+                                        <td><t t-esc="followup.lead_id.phone or ''"/></td>
+                                        <td><t t-esc="followup.lead_id.email_from or ''"/></td>
+                                        <td><t t-esc="followup.next_followup_date or ''"/></td>
+                                        <td><t t-esc="followup.stage_id.name or ''"/></td>
+                                        <td>
+                                            <div class="dropdown">
+                                                <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                    Actions
+                                                </button>
+                                                <ul class="dropdown-menu">
+                                                    <li>
+                                                        <a t-att-href="'/quotation/view/%s' % followup.id" class="dropdown-item">
+                                                            <i class="fa fa-eye text-info"></i> View
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a t-att-href="'/quotation/edit/%s' % followup.id" class="dropdown-item">
+                                                            <i class="fa fa-edit text-warning"></i> Edit
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a t-att-href="'/quotation/delete/%s' % followup.id" class="dropdown-item text-danger"
+                                                           onclick="return confirm('Are you sure you want to delete this quotation?');">
+                                                            <i class="fa fa-trash"></i> Delete
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </t>
+                        </tbody> -->
+                    </table>
+                </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Include DataTables -->
+        <t t-call-assets="web.assets_frontend" t-js="false"/>
+        <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css"/>
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
+        <script>
+            $(document).ready(function () {
+                $('#quotation_table').DataTable({
+                    "pageLength": 10,
+                    "lengthChange": true,
+                    "ordering": true
+                });
+            });
+        </script>
+    </t>
+</template>
+
+
+
+
+
+
+
+</odoo>

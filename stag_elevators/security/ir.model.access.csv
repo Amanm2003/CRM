@@ -1,0 +1,10 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+
+access_lead_followup,access_lead_followup,model_lead_followup,,1,1,1,1
+access_crm_client,access_crm_client,model_crm_client,,1,1,1,1
+access_res_city,access_res_city,model_res_city,,1,1,1,1
+access_crm_stage,access_crm_stage,model_crm_stage,,1,1,1,1
+access_crm_lead,access_crm_lead,model_crm_lead,,1,1,1,1
+access_res_users,access_res_users,model_res_users,,1,1,1,1
+access_res_groups,access_res_groups,model_res_groups,,1,1,1,1
+
