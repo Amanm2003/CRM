@@ -3,7 +3,7 @@
     'version': '1.0',
     'category': 'Website',
     'depends': ['base', 'web', 'auth_signup', 'website','crm','sale','sale_management','survey'],
-    'author':'SynapseIndia',
+    'author':'Aman Mishra',
     'data': [
         # 'security\security_groups.xml',
         'security\ir.model.access.csv',
@@ -34,4 +34,5 @@
     'installable': True,
     'application': False,
 }
+
 
