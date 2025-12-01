@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+
+    <!-- Child groups -->
+    <record id="group_user_role" model="res.groups">
+        <field name="name">User Role Access</field>
+        <field name="category_id" ref="base.module_category_hidden"/>
+        <field name="implied_ids" eval="[(4, ref('group_custom_admin'))]"/>
+    </record>
+
+    <record id="group_city_creation" model="res.groups">
+        <field name="name">City Creation Access</field>
+        <field name="category_id" ref="base.module_category_hidden"/>
+        <field name="implied_ids" eval="[(4, ref('group_custom_admin'))]"/>
+    </record>
+
+    <record id="group_user_permission" model="res.groups">
+        <field name="name">User Permission Access</field>
+        <field name="category_id" ref="base.module_category_hidden"/>
+        <field name="implied_ids" eval="[(4, ref('group_custom_admin'))]"/>
+    </record>
+
+    <record id="group_user_creation" model="res.groups">
+        <field name="name">User Creation Access</field>
+        <field name="category_id" ref="base.module_category_hidden"/>
+        <field name="implied_ids" eval="[(4, ref('group_custom_admin'))]"/>
+    </record>
+
+    <record id="group_lead_stages" model="res.groups">
+        <field name="name">Lead Stages Access</field>
+        <field name="category_id" ref="base.module_category_hidden"/>
+        <field name="implied_ids" eval="[(4, ref('group_custom_admin'))]"/>
+    </record>
+
+    <record id="group_quotation" model="res.groups">
+        <field name="name">Quotation Access</field>
+        <field name="category_id" ref="base.module_category_hidden"/>
+        <field name="implied_ids" eval="[(4, ref('group_custom_admin'))]"/>
+    </record>
+
+    <record id="group_opportunity_creation" model="res.groups">
+        <field name="name">Opportunity Creation Access</field>
+        <field name="category_id" ref="base.module_category_hidden"/>
+    </record>
+
+    <record id="group_leads_followups" model="res.groups">
+        <field name="name">Leads Followups Access</field>
+        <field name="category_id" ref="base.module_category_hidden"/>
+    </record>
+
+    <record id="group_crm_access" model="res.groups">
+        <field name="name">CRM Access</field>
+        <field name="category_id" ref="base.module_category_hidden"/>
+    </record>
+</odoo>
+  

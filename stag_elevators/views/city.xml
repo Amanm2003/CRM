@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ========== city template =========== -->
+    <template id="city_list_template" name="City List Page">
+    <t t-call="website.layout">
+        <div class="container mt-5">
+
+            <!-- Breadcrumb + Buttons in One Line -->
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
+                <!-- Breadcrumb -->
+                <nav aria-label="breadcrumb" class="mb-0">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item">
+                            <a href="#"><i class="bi bi-house-door"></i> Home</a>
+                        </li>
+                        <li class="breadcrumb-item active" aria-current="page">City</li>
+                    </ol>
+                </nav>
+
+                <!-- Buttons -->
+                <div class="d-flex gap-2 mt-2 mt-md-0">
+                    <a href="/Dashboard" class="btn btn-dark">← Back</a>
+                    <a href="/city/create" class="btn btn-dark">+ Add City</a>
+                </div>
+            </div>
+            
+
+            <!-- City Table -->
+            <div><div style="padding:15px; background:white;">
+            <table id="cityTable" class="table table-striped table-bordered">
+                <thead>
+                    <tr>
+                        <th>S.No</th>
+                        <th>City Name</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <t t-set="serial" t-value="1"/>
+                    <t t-foreach="cities" t-as="city">
+                        <tr>
+                            <td><t t-esc="serial"/></td>
+                            <td><t t-esc="city.name"/></td>
+                            <td>
+                                <span t-if="city.status == 'active'" class="text-success">Active</span>
+                                <span t-if="city.status == 'inactive'" class="text-danger">Inactive</span>
+                            </td>
+                            <td>
+                                <a t-attf-href="/city/edit/{{ city.id }}" class="text-primary me-3" title="Edit">
+                                    <i class="fa fa-pen"></i>
+                                </a>
+                                <a t-attf-href="/city/delete/{{ city.id }}" class="text-danger" title="Delete"
+                                   onclick="return confirm('Delete this city?');">
+                                    <i class="fa fa-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        <t t-set="serial" t-value="serial + 1"/>
+                    </t>
+                </tbody>
+            </table>
+            </div></div>
+        </div>
+
+        <!-- Font Awesome for Icons -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+
+        <!-- DataTables CSS/JS -->
+        <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css"/>
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
+        <!-- DataTables Initialization -->
+        <script>
+            $(document).ready(function () {
+                $('#cityTable').DataTable({
+                    "pageLength": 10,
+                    "lengthMenu": [5, 10, 25, 50],
+                    "ordering": true,
+                    "language": {
+                        "search": "Search cities:"
+                    }
+                });
+            });
+        </script>
+    </t>
+</template>
+
+
+    
+
+    <!-- ====== city edit template ==== -->
+<template id="city_edit_template" name="Edit City">
+    <t t-call="website.layout">
+        <div class="container mt-5">
+
+            <!-- Breadcrumb + Back Button in One Line -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <!-- Breadcrumb -->
+                <nav aria-label="breadcrumb" class="mb-0">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item">
+                            <a href="#"><i class="bi bi-house-door"></i> Home</a>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <a href="/city/list">City</a>
+                        </li>
+                        <li class="breadcrumb-item active" aria-current="page">Edit</li>
+                    </ol>
+                </nav>
+
+                <!-- Back Button -->
+                <div class="d-flex gap-2">
+                    <a href="/city/list" class="btn btn-dark">← Back</a>
+                </div>
+            </div>
+            <t t-if="request.params.get('error') == 'city_duplicate'"> 
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        This city name must be unique. 
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            </t>
+
+            <!-- Form Card -->
+            <form t-attf-action="/city/edit/{{ city.id }}" method="post" class="p-4 shadow rounded bg-white">
+                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+
+                <h4 class="mb-4">Edit City</h4>
+
+                <div class="mb-3">
+                    <label for="city_name">City Name</label>
+                    <input type="text" name="city_name" id="city_name" required="true"
+                           class="form-control" t-att-value="city.name"/>
+                </div>
+
+                <div class="mb-3">
+                    <label for="status">Status</label>
+                    <select name="status" class="form-select">
+                        <option value="active" t-att-selected="city.status == 'active'">Active</option>
+                        <option value="inactive" t-att-selected="city.status == 'inactive'">Inactive</option>
+                    </select>
+                </div>
+
+                <!-- Buttons -->
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">Update City</button>
+                    <a href="/city/list" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </t>
+</template>
+
+<template id="city_create_template" name="Create City">
+    <t t-call="website.layout">
+        <div class="container mt-5">
+
+            <!-- Breadcrumb and Buttons in Same Line -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <!-- Breadcrumb -->
+                <nav aria-label="breadcrumb" class="mb-0">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item">
+                            <a href="#"><i class="bi bi-house-door"></i> Home</a>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <a href="/city/list">City</a>
+                        </li>
+                        <li class="breadcrumb-item active" aria-current="page">Add</li>
+                    </ol>
+                </nav>
+
+                <!-- Optional: Back Button -->
+                <div class="d-flex gap-2">
+                    <a href="/city/list" class="btn btn-dark">← Back</a>
+                </div>
+            </div>
+            <t t-if="request.params.get('error') == 'city_duplicate'"> 
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        This city already exist. 
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            </t>
+
+            <!-- Form Card -->
+            <form action="/city/create" method="post" class="shadow p-4 bg-white rounded">
+                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+
+                <div class="mb-3">
+                    <label>City Name</label>
+                    <input type="text" name="city_name" class="form-control" required="true"/>
+                </div>
+
+                <div class="mb-3">
+                    <label>Status</label>
+                    <select name="status" class="form-select">
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                </div>
+
+                <!-- Form Buttons -->
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-dark">Create City</button>
+                    <a href="/city/list" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </t>
+</template>
+
+
+
+</odoo>

@@ -1,0 +1,266 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<template id="crm_stage_list_template" name="CRM Stage List Template">
+    <t t-call="website.layout">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+
+        <div class="container mt-4 mb-4">
+
+            <!-- Header Row: Breadcrumb + Buttons -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <!-- Breadcrumb -->
+                <nav aria-label="breadcrumb" class="mb-0">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item">
+                            <a href="#"><i class="bi bi-house-door"></i> Home</a>
+                        </li>
+                        <li class="breadcrumb-item active" aria-current="page">
+                            Lead Stage
+                        </li>
+                    </ol>
+                </nav>
+
+                <!-- Action Buttons -->
+                <div class="d-flex gap-2">
+                    <a href="/Dashboard" class="btn btn-dark">← Back</a>
+                    <a href="/lead_stage/create" class="btn btn-dark">+ Create</a>
+                </div>
+            </div>
+            <div><div style="padding:15px; background:white;">
+            <!-- Data Table -->
+            <table id="crmStageTable" class="table table-bordered table-striped display" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>S No</th>
+                        <th>Lead Stage Name</th>
+                        <th>Order By</th>
+                        <th>Is Final Stage</th>
+                        <!-- <th>Description</th> -->
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <t t-set="counter" t-value="0"/>
+                    <t t-foreach="stages" t-as="stage">
+                        <t t-set="counter" t-value="counter + 1"/>
+                        <tr>
+                            <td><t t-esc="counter"/></td>
+                            <td><t t-esc="stage.name"/></td>
+                            <td><t t-esc="stage.sequence or ''"/></td>
+                            <td><t t-esc="'yes' if stage.is_won else 'no'"/></td>
+                            <!-- <td><t t-esc="stage.description or ''"/></td> -->
+                            <td>
+                                <span t-esc="stage.stage.capitalize() if stage.stage else '—'"/>
+                            </td>
+
+                            <td>
+                                <a t-att-href="'/lead_stage/edit/%d' % stage.id" class="me-2" title="Edit">
+                                    <i class="fa fa-pen text-primary"></i>
+                                </a>
+                                <a t-attf-href="/lead_stage/delete/{{ stage.id }}" class="text-danger" title="Delete"
+                                   onclick="return confirm('Are you sure you want to delete this stage?');">
+                                    <i class="fa fa-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    </t>
+                </tbody>
+            </table>
+            </div></div>
+        </div>
+
+        <!-- DataTable Scripts -->
+        <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/jquery.dataTables.min.css"/>
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
+        <script>
+            $(document).ready(function () {
+                $('#crmStageTable').DataTable({
+                    "pageLength": 10,
+                    "lengthMenu": [5, 10, 25, 50],
+                    "ordering": true,
+                });
+            });
+        </script>
+    </t>
+</template>
+
+
+
+<template id="crm_stage_create_template" name="CRM Stage Create Template">
+    <t t-call="website.layout">
+        <div class="container mt-5">
+
+            <!-- Header Row: Breadcrumb + Back Button -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <!-- Breadcrumb -->
+                <nav aria-label="breadcrumb" class="mb-0">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item">
+                            <a href="#"><i class="bi bi-house-door"></i> Home</a>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <a href="/lead_stage/list">Lead Stage</a>
+                        </li>
+                        <li class="breadcrumb-item active" aria-current="page">Create</li>
+                    </ol>
+                </nav>
+
+                <!-- Back Button -->
+                <a href="/lead_stage/list" class="btn btn-dark">← Back</a>
+            </div>
+            <t t-if="request.params.get('error') == 'stage_duplicate'"> 
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        This stage already exist. 
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            </t>
+
+            <!-- Form Card -->
+            <form method="POST" action="/lead_stage/submit" class="p-4 shadow rounded bg-white">
+                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+
+                <h4 class="mb-4">Create Lead Stage</h4>
+
+                <!-- Lead Stage Name -->
+                <div class="mb-3">
+                    <label class="form-label">Lead Stage Name</label>
+                    <input type="text" name="name" placeholder="Lead Stage Name" class="form-control" required="true"/>
+                </div>
+
+                <!-- Order By -->
+                <div class="mb-3">
+                    <label class="form-label">Lead Stage Order By</label>
+                    <input type="number" name="sequence" class="form-control" placeholder="Order By" required="true"/>
+                </div>
+
+                <!-- Description -->
+                <div class="mb-3">
+                    <label class="form-label">Lead Stage Description</label>
+                    <textarea name="description" class="form-control" placeholder="Enter description"></textarea>
+                </div>
+
+                <!-- Final Stage Option -->
+                <div class="mb-3">
+                    <label class="form-label">Is Final Stage?</label>
+                    <select name="is_won" class="form-select">
+                        <option value="no">No</option>
+                        <option value="yes">Yes</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Stage Type</label>
+                    <select name="stage" class="form-select" required="true">
+                        <option value="">-- Select Stage --</option>
+                        <option value="sales">Sales</option>
+                        <option value="crm">CRM</option>
+                        <option value="production">Production</option>
+                    </select>
+                </div>
+
+                <!-- Status -->
+                
+                <!-- <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="is_crm" name="is_crm" value="true"/>
+                    <label class="form-check-label" for="is_crm">Is CRM Stage?</label>
+                </div> -->
+
+                <!-- Submit + Cancel -->
+                <div class="d-flex justify-content-end mt-4">
+                    <button type="submit" class="btn btn-dark me-2">Submit</button>
+                    <a href="/lead_stage/list" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </t>
+</template>
+
+
+<template id="crm_stage_edit_template" name="CRM Stage Edit Template">
+    <t t-call="website.layout">
+        <div class="container mt-5">
+
+            <!-- Header Row: Breadcrumb + Back Button -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <!-- Breadcrumb -->
+                <nav aria-label="breadcrumb" class="mb-0">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item">
+                            <a href="#"><i class="bi bi-house-door"></i> Home</a>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <a href="/lead_stage/list">Lead Stage</a>
+                        </li>
+                        <li class="breadcrumb-item active" aria-current="page">Edit</li>
+                    </ol>
+                </nav>
+
+                <!-- Back Button -->
+                <a href="/lead_stage/list" class="btn btn-dark">← Back</a>
+            </div>
+
+            <!-- Edit Form Card -->
+            <form method="POST" action="/lead_stage/update" class="p-4 shadow rounded bg-white">
+                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                <input type="hidden" name="stage_id" t-att-value="stage.id"/>
+
+                <h4 class="mb-4">Edit Lead Stage</h4>
+
+                <!-- Lead Stage Name -->
+                <div class="mb-3">
+                    <label class="form-label">Lead Stage Name</label>
+                    <input type="text" name="name" t-att-value="stage.name" class="form-control" required="true"/>
+                </div>
+
+                <!-- Sequence -->
+                <div class="mb-3">
+                    <label class="form-label">Lead Stage Order By</label>
+                    <input type="number" name="sequence" t-att-value="stage.sequence" class="form-control" required="true"/>
+                </div>
+
+                <!-- Description -->
+                <div class="mb-3">
+                    <label class="form-label">Lead Stage Description</label>
+                    <textarea name="description" class="form-control"><t t-esc="stage.description or ''"/></textarea>
+                </div>
+
+                <!-- Is Final Stage -->
+                <div class="mb-3">
+                    <label class="form-label">Is Final Stage?</label>
+                    <select name="is_won" class="form-select">
+                        <option value="no" t-att-selected="not stage.is_won">No</option>
+                        <option value="yes" t-att-selected="stage.is_won">Yes</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Stage Type</label>
+                    <select name="stage" class="form-select" required="true">
+                        <option value="sales" t-att-selected="stage.stage == 'sales'">Sales</option>
+                        <option value="crm" t-att-selected="stage.stage == 'crm'">CRM</option>
+                        <option value="production" t-att-selected="stage.stage == 'production'">Production</option>
+                    </select>
+                </div>
+
+
+                
+                <!-- <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="is_crm" name="is_crm" value="true"
+                           t-att-checked="'checked' if stage.is_crm else None"/>
+                    <label class="form-check-label" for="is_crm">Is CRM Stage?</label>
+                </div> -->
+
+                <!-- Submit + Cancel -->
+                <div class="d-flex justify-content-end mt-4">
+                    <button type="submit" class="btn btn-dark me-2">Update</button>
+                    <a href="/lead_stage/list" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </t>
+</template>
+
+
+</odoo>

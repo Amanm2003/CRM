@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<!-- <template id="custom_web_login_inherit" inherit_id="web.login">
+    <xpath expr="//form" position="replace">
+        <t t-call="stag_elevators.custom_login_template"/>
+    </xpath>
+</template> -->
+
+<template id="custom_web_login_inherit" inherit_id="web.login">
+    <xpath expr="//t[@t-call='web.login_layout']" position="replace">
+        <t t-call="stag_elevators.custom_login_template"/>
+    </xpath>
+</template>
+
+
+</odoo>

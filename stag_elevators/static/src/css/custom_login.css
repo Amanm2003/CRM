@@ -1,0 +1,459 @@
+body{
+  background-color: #dae9f8;
+}
+
+.stag-login-background {
+    background-color: #000;
+    min-height: 100vh;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.stag-login-box {
+    background-color: #0c0c0f;
+    padding: 30px;
+    border-radius: 10px;
+    width: 350px;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.08);
+    text-align: center;
+}
+
+.stag-logo {
+    width: 300px;
+    height: auto;
+    margin-bottom: 10px;
+}
+
+.stag-title {
+    color: white;
+    font-size: 20px;
+    letter-spacing: 4px;
+    font-weight: 500;
+    margin-bottom: 20px;
+}
+
+.stag-error-box {
+    background-color: #ff5f73;
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    font-weight: 500;
+}
+
+.stag-login-box input {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 6px;
+    border: none;
+    background-color: #eaf0ff;
+    color: #333;
+    font-size: 15px;
+}
+
+.stag-login-box button {
+    width: 100%;
+    padding: 10px;
+    background-color: #e18b3b;
+    color: white;
+    font-weight: bold;
+    border: none;
+    border-radius: 6px;
+    margin-top: 10px;
+    cursor: pointer;
+    transition: 0.3s ease;
+}
+
+.stag-login-box button:hover {
+    background-color: #cf7a2a;
+}
+
+
+.sidebar {
+      min-height: 100vh;
+    background-color: #fff;
+    border-right: 1px solid #ddd;
+    max-width: 250px;
+    display: block;
+    width: 100%;
+}
+.sidebar .logo {
+      background-color: #333;
+    padding: 15px 20px;
+}
+.dropdown{
+    cursor: pointer;
+}
+.sidebar .logo img {
+  width: 200px;
+  height: auto;
+}
+.breadcrumb li {
+  font-size: 15px;
+  color: #333;
+  text-decoration: none;
+}
+.breadcrumb li a {
+  color: #839bb3;
+  text-decoration: none;
+}
+ul.dropdown-menu.user{
+    border-radius: 5px;
+       border: 1px solid #d8e3ef;
+       top: 10px;
+    padding: 6px 0px;
+
+}
+ul.dropdown-menu.user li{
+    padding: 5px 0px;
+}
+ul.dropdown-menu.user li:hover a{
+    color: #736cc7;
+}
+
+.sidebar a {
+  text-decoration: none;
+  padding: 12px 20px;
+  display: block;
+  color: #333;
+  font-weight: 500;
+}
+.sidebar a:hover {
+  background-color: #f0f0f0;
+}
+.card-box {
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  display: flex;
+  gap: 20px;
+     border: 1px solid #d8e3ef;
+  padding: 20px 30px!important;
+}
+.dashboard_grid .card-box {
+    flex-direction: row;
+    border-radius: 5px!important;
+    justify-content: flex-start;
+}
+.lead-icon {
+  font-size: 24px;
+}
+
+.calendar-box,
+.pending-leads-box {
+  min-height: 300px;
+}
+.card-box .icon {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f0f0f0;
+  border-radius: 50%;
+}
+.card-box .icon i {
+  font-size: 30px;
+}
+.content-wrapper {
+  min-height: 70vh;
+}
+
+.tt{
+    margin-bottom: 15px;
+}
+.dashboard_grid .col-6:nth-child(even) .icon {
+  background-color: #f64a9166;
+  color: #F64A91;
+}
+.dashboard_grid .col-6:nth-child(odd) .icon {
+  background-color: #736cc766;
+  color: #736cc7    ;
+}
+.pending-leads-box  tbody td{
+background: #f0f6ff;
+}
+.sidebar menu li .submenu {
+    padding-left: 30px;
+}
+.sidebar menu li .submenu li{
+font-size: 16px;
+
+}
+.sidebar menu li .submenu li a{ 
+    padding: 5px;
+    font-size: 14px;
+    color: #312f2f;
+}
+.sidebar menu li .submenu li a:hover{
+    color: #736cc7;
+}
+
+@media (max-width: 767px) {
+  .sidebar {
+    position: fixed;
+    z-index: 1000;
+    width: 200px;
+    left: -200px;
+    transition: all 0.3s ease-in-out;
+  }
+  .sidebar.show {
+    left: 0;
+  }
+  .toggle-btn {
+    cursor: pointer;
+  }
+  .card-box{
+    padding: 20px 15px!important;
+  }
+  .dashboard_grid .card-box{
+     flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+  }
+  .menu-icon{
+    font-size: 26px;
+  }
+  .content-wrapper header{
+padding: 10px!important;
+}
+}
+
+.sidebar {
+    position: relative;
+    top: 0;
+}
+
+.sitelogo {
+    background: #000;
+    width: 32%;
+    position: relative;
+    top:7px
+}
+#sidebar{
+    position: relative;
+    top: 0px;
+    width: 15.5%;
+}
+
+#opportunityTable{
+  border: 1px solid rgba(0, 0, 0, 0.3);
+  vertical-align: middle;
+}
+#userPermissionTable{
+  border: 1px solid rgba(0, 0, 0, 0.3);
+  font-size: 13px;
+  vertical-align: middle;
+}
+#userPermissionRoleTable{
+  border: 1px solid rgba(0, 0, 0, 0.3);
+  font-size: 13px;
+  vertical-align: middle;
+}
+#cityTable{
+  border: 1px solid rgba(0, 0, 0, 0.3);
+  font-size: 13px;
+  vertical-align: middle;
+}
+#crmStageTable{
+  border: 1px solid rgba(0, 0, 0, 0.3);
+  font-size: 13px;
+  vertical-align: middle;
+}
+#userTable{
+  border: 1px solid rgba(0, 0, 0, 0.3);
+  font-size: 13px;
+  vertical-align: middle;
+}
+#lead_followup_table{
+  border: 1px solid rgba(0, 0, 0, 0.3);
+  vertical-align: middle;
+}
+
+#clientTable{
+  border: 1px solid rgba(0, 0, 0, 0.3);
+  vertical-align: middle;
+}
+#ProductionTable{
+  border: 1px solid rgba(0, 0, 0, 0.3);
+  vertical-align: middle;
+  font-size: 13px;
+}
+#clientTable_wrapper{
+  background: white;
+}
+#userTable_wrapper{
+  background: white;
+}
+#userPermissionTable_wrapper{
+  background: white;
+}
+#userPermissionRoleTable_wrapper{
+  background: white;
+}
+#lead_followup_table_wrapper{
+  background: white;
+}
+#crmStageTable_wrapper{
+  background: white;
+}
+#cityTable_wrapper{
+  background: white;
+}
+#user_namee{
+  margin: auto;
+    position: relative;
+    left: -48%;
+}
+.divider {
+      border-left: 1px solid #ccc;
+      height: 24px;
+      margin: 0 15px;
+    }
+
+#lead-calendar {
+    background: #ffffff;
+    padding: 1rem;
+    border-radius: 12px;
+    box-shadow: 0 0 12px rgba(0, 0, 0, 0.05);
+    position: relative;
+    top: -23px;
+  }
+
+  .fc {
+    font-family: 'Inter', sans-serif;
+  }
+
+  .fc-daygrid-event {
+    background-color: #5b51d8;
+    color: white;
+    border-radius: 4px;
+    font-size: 13px;
+    padding: 2px 6px;
+    font-weight: 500;
+    border: none;
+  }
+
+  .fc-toolbar-title {
+    font-weight: 600;
+    font-size: 18px;
+    color: #333;
+  }
+
+  .fc-button {
+    background-color: #7c3aed;
+    border: none;
+    padding: 5px 12px;
+    border-radius: 6px;
+    color: white;
+    font-size: 14px;
+  }
+
+  .fc-button:disabled {
+    background-color: #d1d5db;
+    color: #888;
+  }
+
+  .fc-button-primary:hover {
+    background-color: #5b21b6;
+  }
+
+  .fc-scrollgrid, .fc-daygrid-body {
+    border-color: #e2e8f0;
+  }
+
+  .fc-col-header-cell-cushion {
+    color: #4b5563;
+    font-weight: 500;
+  }
+
+  .equal-height-box {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 400px; /* Adjust as needed */
+}
+
+
+.duplicate-highlight td {
+        background-color: #ffe6e6 !important;
+        color: #d60000 !important;
+        font-weight: bold !important;
+    }
+
+.dataTables_filter{
+      padding-bottom: 5px;
+}
+.col-md-9 o_website_content{
+  background-color: #dae9f8;
+}
+#user_namee{
+  padding-left: 76px;
+}
+/* === for client list table font ===== */
+#clientTable {
+    font-size: 13px;  /* smaller font */
+}
+
+#clientTable th,
+#clientTable td {
+    padding: 6px 8px; /* reduce cell padding */
+    vertical-align: middle;
+}
+
+#clientTable .badge,
+#clientTable .btn {
+    font-size: 11px;
+    padding: 4px 8px;
+}
+/* === for opportunity table === */
+#opportunityTable{
+  font-size: 13px;
+  vertical-align: middle;
+}
+#lead_followup_table{
+  font-size: 13px;
+  vertical-align: middle;
+}
+#quotation_table{
+  font-size: 13px;
+  border: 1px solid rgba(0, 0, 0, 0.3);
+  vertical-align: middle;
+}
+#wrapwrap{
+  background-color: #dae9f8;
+}
+.fc-daygrid-event {
+    cursor: pointer !important;
+}
+a.disabled {
+  pointer-events: none;
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+#row g-3 mb-4 dashboard_grid{
+  font-size: small;
+}
+.btn-orange {
+    background-color: orange;
+    border-color: orange;
+    color: #fff;
+}
+
+.btn-orange:hover {
+    background-color: darkorange;
+    border-color: darkorange;
+    color: #fff;
+}
+/* .logo {
+    width: auto;
+    display: inline-block;
+    padding: 0px 0 0 20px;
+}
+ 
+.logo img.sitelogo {
+    width: 266px;
+} */

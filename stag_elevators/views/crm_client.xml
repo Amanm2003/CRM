@@ -1,0 +1,3456 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+
+    <template id="crm_client_list_template" name="CRM Client List View">
+        <t t-call="website.layout">
+            <div class="container my-5">
+                <!-- <h2>CRM Client List</h2> -->
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <!-- Breadcrumb -->
+                    <nav aria-label="breadcrumb" class="mb-0">
+                        <ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item">
+                                <a href="/Dashboard">
+                                    <i class="bi bi-house-door"></i> Home</a>
+                            </li>
+                            <li class="breadcrumb-item active" aria-current="page">
+                            CRM Client
+                            </li>
+                        </ol>
+                    </nav>
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex gap-2">
+                        <a href="/Dashboard" class="btn btn-dark">← Back</a>
+                        <button id="assignAll" class="btn btn-success">Assign</button>
+                    </div>
+                </div>
+                <div>
+                    <div style="padding:15px; background:white;">
+                        <table id="clientTable" class="table table-striped table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Client Name</th>
+                                    <th>Contact No</th>
+                                    <th>Email</th>
+                                    <th>Location</th>
+                                    <!-- <th>Contact Address</th> -->
+                                    <th style="width:250px;">Stages</th>
+
+                                    <th>Type</th>
+                                    <th>Assigned to</th>
+
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="clients" t-as="client">
+                                    <tr t-att-data-id="client.id">
+                                        <td>
+                                            <a t-att-href="'/crm/client/edit/%s' % client.id"
+                                            style="color: #007bff; text-decoration: underline;">
+                                                <t t-esc="client.lead_id.name"/>
+                                            </a>
+
+                                        </td>
+                                        <td>
+                                            <t t-esc="client.contact_no"/>
+                                        </td>
+                                        <td>
+                                            <t t-esc="client.email"/>
+                                        </td>
+                                        <td>
+                                            <t t-esc="client.location"/>
+                                        </td>
+                                        <td>
+                                            <span t-att-class="'btn btn-sm rounded-pill px-1 ' + ('btn-success' if client.stage1 else 'btn-danger')" title="Site Visit Confirm" style="padding-block: initial;">
+                                                Stage 1
+                                            </span>
+                                            <span t-att-class="'btn btn-sm rounded-pill px-1 ' + ('btn-success' if client.stage2 else 'btn-danger')" title="Drawing Sent" style="padding-block: initial;">
+                                                Stage 2
+                                            </span>
+                                            <span t-att-class="'btn btn-sm rounded-pill px-1 ' + ('btn-success' if client.stage3 else 'btn-danger')" title="Finishes form" style="padding-block: initial;">
+                                                Stage 3
+                                            </span>
+                                            <span t-att-class="'btn btn-sm rounded-pill px-1 ' + ('btn-success' if client.stage4 else 'btn-danger')" title="Readiness Form" style="padding-block: initial;">
+                                                Stage 4
+                                            </span>
+                                            <span t-att-class="'btn btn-sm rounded-pill px-1 ' + ('btn-success' if client.stage5 else 'btn-danger')" title="Readiness Notification" style="padding-block: initial;">
+                                                Stage 5
+                                            </span>
+                                            <span t-att-class="'btn btn-sm rounded-pill px-1 ' + ('btn-success' if client.stage6 else 'btn-danger')" title="Material Dispatch" style="padding-block: initial;">
+                                                Stage 6
+                                            </span>
+                                            <span t-att-class="'btn btn-sm rounded-pill px-1 ' + ('btn-success' if client.stage7 else 'btn-danger')" title="Pre Installation" style="padding-block: initial;">
+                                                Stage 7
+                                            </span>
+                                            <span t-att-class="'btn btn-sm rounded-pill px-1 ' + ('btn-success' if client.stage8 else 'btn-danger')" title="Installation Timeline / Process" style="padding-block: initial;">
+                                                Stage 8
+                                            </span>
+                                            <span t-att-class="'btn btn-sm rounded-pill px-1 ' + ('btn-success' if client.stage9 else 'btn-danger')" title="AMC / Services" style="padding-block: initial;">
+                                                Stage 9
+                                            </span>
+                                        </td>
+
+                                        <td>
+                                            <t t-if="client.stage9">
+                                                <button class="btn btn-sm btn-toggle-type" t-att-data-id="client.id" t-att-data-amc="client.amc" t-att-data-service="client.service">
+                                                Switch
+                                                </button>
+                                                <t t-if="client.amc">
+                                                    <span class="badge bg-success">AMC</span>
+                                                </t>
+                                                <t t-elif="client.service and client.stage7">
+                                                    <span class="badge bg-info">Service</span>
+                                                </t>
+                                                <t t-else="">
+                                                    <span class="badge bg-secondary">--</span>
+                                                </t>
+                                            </t>
+                                        </td>
+
+                                        <td>
+                                            <div class="d-flex flex-column gap-1">
+                                                <t t-if="request.env.user.groups_id.filtered(lambda g: g.ismy and g.is_admin)">
+                                                    <!-- Checkbox with tooltip + label -->
+                                                    <div class="form-check d-flex align-items-center">
+                                                        <input type="checkbox" class="row-checkbox form-check-input me-2" data-bs-toggle="tooltip" data-bs-placement="top" title="Check this box to change the assigned employee"/>
+                                                        <label class="form-check-label" style="font-size: 12px; font-weight: 600;">
+                                                        Change Employee
+                                                        </label>
+                                                    </div>
+                                                </t>
+
+                                                <!-- Assigned user text -->
+                                                <span class="assigned-text text-muted small ps-1">
+                                                    <t t-esc="client.assign_to.name or '-- Not Assigned --'"/>
+                                                </span>
+
+                                                <!-- Dropdown (hidden until checkbox is ticked) -->
+                                                <select class="form-select assign-dropdown d-none form-select-sm">
+                                                    <option value="" t-att-selected="not client.assign_to.id and 'selected' or None">-- Select --</option>
+                                                    <t t-foreach="users" t-as="user">
+                                                        <option t-att-value="user.id" t-att-selected="client.assign_to.id == user.id and 'selected' or None">
+                                                            <t t-esc="user.name"/>
+                                                        </option>
+                                                    </t>
+                                                </select>
+                                            </div>
+                                        </td>
+
+                                        <td>
+                                            <a t-att-href="'/crm/client/edit/%s' % client.id" class="btn btn-primary btn-sm">Edit</a>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal fade" id="amcModal" tabindex="-1" aria-labelledby="amcModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Activate AMC</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="amcForm">
+                                <input type="hidden" name="client_id" id="amc_client_id"/>
+
+                                <div class="mb-3">
+                                    <label>AMC Start Date</label>
+                                    <input type="date" name="amc_start_date" class="form-control" required="true"/>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label>AMC End Date</label>
+                                    <input type="date" name="amc_end_date" class="form-control" required="true"/>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label>Renewal</label>
+                                    <br/>
+                                    <input type="radio" name="renew" id="renew"/>
+ Renew
+                                    <input type="radio" name="renew" id="not_renew"/>
+ Not Renew
+                                </div>
+
+                                <div class="mb-3" id="renewDateField" style="display:none;">
+                                    <label>Renew Date</label>
+                                    <input type="date" name="renew_date" class="form-control"/>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button class="btn btn-primary" id="saveAmcBtn">Save</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal fade" id="waitModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+                <div class="modal-dialog modal-sm modal-dialog-centered">
+                    <div class="modal-content p-3 d-flex flex-column justify-content-center align-items-center">
+                        <!-- Centered Spinner -->
+                        <div class="spinner-border text-primary mb-3" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <h6 class="mb-0">Please wait...</h6>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DataTables CSS and JS -->
+            <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css"/>
+            <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+            <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+            <script>
+            $(document).ready(function () {
+                $('#clientTable').DataTable({
+                    "pageLength": 10,
+                    "searching": true,  
+                    "columnDefs": [
+                        { "searchable": false, "targets": [6, 7] } 
+                    ]
+                });
+
+                $('#selectAll').on('change', function () {
+        $('.row-checkbox').prop('checked', $(this).is(':checked'));
+    });
+
+    $(document).on('change', '.row-checkbox', function () {
+        var row = $(this).closest('tr');
+        if ($(this).is(':checked')) {
+            row.find('.assigned-text').addClass('d-none');   // hide text
+            row.find('.assign-dropdown').removeClass('d-none'); // show dropdown
+        } else {
+            row.find('.assign-dropdown').addClass('d-none'); // hide dropdown
+            row.find('.assigned-text').removeClass('d-none'); // show text
+        }
+    });
+
+    $('#selectAll').on('change', function () {
+        var checked = $(this).is(':checked');
+        $('.row-checkbox').prop('checked', checked).trigger('change');
+    });
+
+    $('#assignAll').on('click', function () {
+        var assignments = [];
+
+        $('#clientTable tbody tr').each(function () {
+            if ($(this).find('.row-checkbox').is(':checked')) {
+                var ClientId = $(this).data('id');
+                var userId = $(this).find('.assign-dropdown').val();
+
+                if (userId) {
+                    assignments.push({client_id: ClientId, user_id: userId});
+                }
+            }
+        });
+
+        if (assignments.length === 0) {
+            alert("⚠️ Please select at least one row and assign a user.");
+            return;
+        }
+        var waitModal = new bootstrap.Modal(document.getElementById('waitModal'));
+        waitModal.show();
+
+        $.ajax({
+            url: '/crm/assign/bulk',
+            type: 'POST',
+            data: JSON.stringify({assignments: assignments}),
+            contentType: 'application/json',
+            success: function (response) {
+                waitModal.hide();
+                                <!-- alert("✅ Assignments updated successfully!"); -->
+                location.reload();
+            },
+            error: function () {
+                waitModal.hide();
+                alert("❌ Error updating assignments!");
+            }
+        });
+    });
+            });
+            
+$(document).ready(function () {
+    $(document).on("change", "input[name='renew']", function () {
+        if ($(this)[0].id === "renew") {
+            $("#renewDateField").show();
+        } else {
+            $("#renewDateField").hide();
+        }
+    });
+
+    $(document).on("click", ".btn-toggle-type", function () {
+        var clientId = $(this).data("id");
+        var isAmc = $(this).data("amc");
+        var isService = $(this).data("service");
+        
+        if (confirm("Are you sure you want to switch this client?")){
+
+        if (isService == 'True') {
+
+            $("#amc_client_id").val(clientId);
+            $("#amcForm")[0].reset();
+            $("#renewDateField").hide();
+            $("#amcModal").modal("show");
+        } else if (isAmc == 'True') {
+
+                $.ajax({
+                url: "/crm/client/toggle_type",
+                type: "POST",
+                data: { id: clientId },
+                success: function (response) {
+                    if (response.success) {
+                        location.reload();
+                    } else {
+                                                        <!-- alert("Switch failed"); -->
+                        location.reload();
+                    }
+                }
+            });
+        }
+        }
+    });
+
+   
+    $("#saveAmcBtn").on("click", function () {
+        let startDate = $("input[name='amc_start_date']").val();
+        let endDate = $("input[name='amc_end_date']").val();
+        let renewal = document.getElementById('renew').checked;
+        let renewDate = $("input[name='renew_date']").val();
+
+        if (!startDate || !endDate) {
+            alert("Start Date and End Date are required.");
+            return;
+        }
+        if (new Date(endDate) &lt;= new Date(startDate)) {
+            alert("End Date must be greater than Start Date.");
+            return;
+        }
+        if ( !renewDate &amp;&amp; renewal) {
+            alert("Renew Date is required when renewal is set to 'Renew'.");
+            return;
+        }
+
+        var formData = $("#amcForm").serializeArray();
+    formData.push({name: 'renewed', value: renewal});
+        $.ajax({
+            url: "/crm/client/activate_amc",
+            type: "POST",
+            data: formData,
+            success: function (response) {
+                if (response.success) {
+                    $("#amcModal").modal("hide");
+                    location.reload();
+                } else {
+                    alert("Failed to activate AMC");
+                    
+                }
+            }
+        });
+    });
+});
+            </script>
+
+        </t>
+    </template>
+    <template id="edit_crm_client_template" name="Edit CRM Client">
+        <t t-call="website.layout">
+            <div class="container my-5">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <!-- Breadcrumb -->
+                    <nav aria-label="breadcrumb" class="mb-0">
+                        <ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item">
+                                <a href="/Dashboard">
+                                    <i class="bi bi-house-door"></i> Home</a>
+                            </li>
+                            <li class="breadcrumb-item " aria-current="page">
+                                <a href="/crm_client/list">CRM Client</a>
+                            </li>
+                            <li class="breadcrumb-item active" aria-current="page">
+                            Edit
+                            </li>
+                        </ol>
+                    </nav>
+                    <div style="position: absolute; width: 50%; right: 0;">
+                        <div class="btn-group gap-2"> CRM
+                            <button t-att-class="'btn btn-sm rounded-pill px-2 ' + ('btn-success' if client.stage1 else 'btn-danger')" data-bs-toggle="modal" data-bs-target="#stage1Modal" data-bs-placement="top" title="Site Visit Confirm">
+                            Stage 1
+                            </button>
+                            <button t-att-class="'btn btn-sm rounded-pill px-2 ' + ('btn-success' if client.stage2 else 'btn-danger')" data-bs-toggle="modal" data-bs-target="#stage2Modal" data-bs-placement="top" title="Drawing Sent">
+                            Stage 2
+                            </button>
+                            <button t-att-class="'btn btn-sm rounded-pill px-2 ' + ('btn-success' if client.stage3 else 'btn-danger')" data-bs-toggle="modal" data-bs-target="#stage4Modal" data-bs-placement="top" title="Finishes form">
+                            Stage 3
+                            </button>
+                            <button t-att-class="'btn btn-sm rounded-pill px-2 ' + ('btn-success' if client.stage4 else 'btn-danger')" data-bs-toggle="modal" data-bs-target="#stage3Modal" data-bs-placement="top" title="Rediness Form" t-att-disabled="not client.stage3 ">
+                            Stage 4
+                            </button>
+                            <button t-att-class="'btn btn-sm rounded-pill px-2 ' + ('btn-success' if client.stage5 else 'btn-danger')" data-bs-toggle="modal" data-bs-target="#stage5Modal" data-bs-placement="top" title="Rediness Notification" t-att-disabled="not client.stage4">
+                            Stage 5
+                            </button>
+                            <button t-att-class="'btn btn-sm rounded-pill px-2 ' + ('btn-success' if client.stage6 else 'btn-danger')" data-bs-toggle="modal" data-bs-target="#stage6Modal" data-bs-placement="top" title="Material Dispatch" t-att-disabled="not client.stage4">
+                            Stage 6
+                            </button>
+                            <button t-att-class="'btn btn-sm rounded-pill px-2 ' + ('btn-success' if client.stage7 else 'btn-danger')" data-bs-toggle="modal" data-bs-target="#stage7Modal" data-bs-placement="top" title="Pre Installation" t-att-disabled="not client.stage6">
+                            Stage 7
+                            </button>
+                            <button t-att-class="'btn btn-sm rounded-pill px-2 ' + ('btn-success' if client.stage8 else 'btn-danger')" data-bs-toggle="modal" data-bs-target="#stage8Modal" data-bs-placement="top" title="Installation Timeline / Process" t-att-disabled="not client.stage7">
+                            Stage 8
+                            </button>
+                            <button t-att-class="'btn btn-sm rounded-pill px-2 ' + ('btn-success' if client.stage9 else 'btn-danger')" data-bs-toggle="modal" data-bs-target="#stage9Modal" data-bs-placement="top" title="AMC/Service" t-att-disabled="not client.stage8">
+                            Stage 9
+                            </button>
+
+                            <!--<button class="btn btn-sm btn-outline-primary rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#stage2Modal">Stage 2</button>-->
+                            <!--<button class="btn btn-sm btn-outline-primary rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#stage3Modal">Stage 3</button>-->
+                            <!--<button class="btn btn-sm btn-outline-primary rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#stage4Modal">Stage 4</button>-->
+                        </div>
+                        <div class="btn-group gap-2" style="
+                                        position: relative;
+                                        margin-top: 4px;
+                                    "> Production
+                            <button t-att-class="'btn btn-sm rounded-pill px-2 ' + ('btn-success' if prod.stage1 else 'btn-danger')" data-bs-toggle="modal" data-bs-target="#Pstage1Modal" data-bs-placement="top" title="Site Visit Confirm">
+                            Stage 1
+                            </button>
+                            <button t-att-class="'btn btn-sm rounded-pill px-2 ' + ('btn-success' if prod.stage2 else 'btn-danger')" data-bs-toggle="modal" data-bs-target="#Pstage2Modal" data-bs-placement="top" title="Drawing Sent">
+                            Stage 2
+                            </button>
+                            <button t-att-class="'btn btn-sm rounded-pill px-2 ' + ('btn-success')" data-bs-toggle="modal" data-bs-target="#Pstage3Modal" data-bs-placement="top" title="Finishes form" style="pointer-events: none; opacity: 1;">
+                            Stage 3
+                            </button>
+                            <button t-att-class="'btn btn-sm rounded-pill px-2 ' + ('btn-success')" data-bs-toggle="modal" data-bs-target="#Pstage4Modal" data-bs-placement="top" title="Rediness Form" style="pointer-events: none; opacity: 1;">
+                            Stage 4
+                            </button>
+                            <button t-att-class="'btn btn-sm rounded-pill px-2 ' + ('btn-success')" data-bs-toggle="modal" data-bs-target="#Pstage5Modal" data-bs-placement="top" title="Rediness Notification" style="pointer-events: none; opacity: 1;">
+                            Stage 5
+                            </button>
+                            <button t-att-class="'btn btn-sm rounded-pill px-2 ' + ('btn-success' if prod.stage6 else 'btn-danger')" data-bs-toggle="modal" data-bs-target="#Pstage6Modal" data-bs-placement="top" title="Material Dispatch">
+                            Stage 6
+                            </button>
+                            <button t-att-class="'btn btn-sm rounded-pill px-2 ' + ('btn-success' if prod.stage7 else 'btn-danger')" data-bs-toggle="modal" data-bs-target="#Pstage7Modal" data-bs-placement="top" title="Pre Installation">
+                            Stage 7
+                            </button>
+                            <button t-att-class="'btn btn-sm rounded-pill px-2 ' + ('btn-success' if prod.stage8 else 'btn-danger')" data-bs-toggle="modal" data-bs-target="#Pstage8Modal" data-bs-placement="top" title="Installation Timeline / Process">
+                            Stage 8
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-4">
+
+                    <h2 class="mb-0">
+                        <t t-esc="client.lead_id.name"/>
+                    </h2>
+
+                </div>
+                <div t-if="request.session.get('error_message')" class="alert alert-danger">
+                    <t t-esc="request.session.pop('error_message')"/>
+                </div>
+
+                <form action="/crm/client/update" method="post" class="form">
+                    <t t-if="request.params.get('error') == 'date_v'">
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                    Next follow-up date cannot be earlier than the existing one.
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    </t>
+                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                    <input type="hidden" name="client_id" t-att-value="client.id"/>
+                    <input type="hidden" name="site_visit_hidden" id="site_visit_hidden" value="0"/>
+                    <input type="hidden" name="site_visit_done" id="site_visit_done_hidden" value="0"/>
+                    <input type="hidden" name="drawing_sentt" id="drawing_sentt" value="0"/>
+                    <input type="hidden" name="rev1" id="rev1" value="0"/>
+                    <input type="hidden" name="rev2" id="rev2" value="0"/>
+                    <input type="hidden" name="rev3" id="rev3" value="0"/>
+                    <input type="hidden" name="rev4" id="rev4" value="0"/>
+                    <input type="hidden" name="rev5" id="rev5" value="0"/>
+                    <input type="hidden" name="finishes_form" id="finishes_form_hidden" value="0"/>
+                    <input type="hidden" name="drawing_sent_date_hidden" id="drawing_sent_date_hidden"/>
+                    <input type="hidden" name="rev_1_date_hidden" id="rev_1_date_hidden"/>
+                    <input type="hidden" name="rev_2_date_hidden" id="rev_2_date_hidden"/>
+                    <input type="hidden" name="rev_3_date_hidden" id="rev_3_date_hidden"/>
+                    <input type="hidden" name="rev_4_date_hidden" id="rev_4_date_hidden"/>
+                    <input type="hidden" name="rev_5_date_hidden" id="rev_5_date_hidden"/>
+                    <input type="hidden" name="redinessform_hidden" id="redinessform_hidden" value="0"/>
+                    <input type="file" name="stage3_attachment_hidden" id="stage3_attachment_hidden" style="display: none;"/>
+
+                    <input type="hidden" name="stage1_hidden" id="stage1_hidden" value="0"/>
+                    <input type="hidden" name="stage2_hidden" id="stage2_hidden" value="0"/>
+                    <input type="hidden" name="stage3_hidden" id="stage3_hidden" value="0"/>
+                    <input type="hidden" name="stage4_hidden" id="stage4_hidden" value="0"/>
+                    <input type="hidden" name="stage5_hidden" id="stage5_hidden" value="0"/>
+                    <input type="hidden" name="stage6_hidden" id="stage6_hidden" value="0"/>
+                    <input type="hidden" name="stage7_hidden" id="stage7_hidden" value="0"/>
+                    <input type="hidden" name="stage8_hidden" id="stage8_hidden" value="0"/>
+                    <input type="hidden" name="stage9_hidden" id="stage9_hidden" value="0"/>
+
+                    <input type="hidden" name="material_dispatch_hidden" id="material_dispatch_hidden" value="0"/>
+                    <input type="hidden" name="material_delivery_hidden" id="material_delivery_hidden" value="0"/>
+                    <input type="hidden" name="material_dispatch_date_hidden" id="material_dispatch_date_hidden"/>
+                    <input type="hidden" name="material_delivery_date_hidden" id="material_delivery_date_hidden"/>
+
+                    <input type="hidden" name="readiness_notification_hidden" id="readiness_notification_hidden" value="0"/>
+                    <input type="hidden" name="advance_paid_percentage_hidden" id="advance_paid_percentage_hidden"/>
+                    <input type="hidden" name="advance_paid_checkbox_hidden" id="advance_paid_checkbox_hidden" value="0"/>
+                    <input type="hidden" name="advance_paid_amount_hidden" id="advance_paid_amount_hidden"/>
+                    <input type="hidden" name="readiness_collected_checkbox_hidden" id="readiness_collected_checkbox_hidden" value="0"/>
+                    <input type="hidden" name="handover_checkbox_hidden" id="handover_checkbox_hidden" value="0"/>
+                    <input type="hidden" name="balance_checkbox_hidden" id="balance_checkbox_hidden" value="0"/>
+                    <input type="hidden" name="readiness_collected_percentage_hidden" id="readiness_collected_percentage_hidden"/>
+                    <input type="hidden" name="handover_percentage_hidden" id="handover_percentage_hidden"/>
+                    <input type="hidden" name="balance_percentage_hidden" id="balance_percentage_hidden"/>
+                    <input type="hidden" name="readiness_collected_amount_hidden" id="readiness_collected_amount_hidden"/>
+                    <input type="hidden" name="handover_amount_hidden" id="handover_amount_hidden"/>
+                    <input type="hidden" name="balance_amount_hidden" id="balance_amount_hidden"/>
+                    <input type="hidden" name="start_installation_hidden" id="start_installation_hidden"/>
+
+                    <input type="hidden" name="ongoing_hidden" id="ongoing_hidden" value="0"/>
+                    <input type="hidden" name="completed_hidden" id="completed_hidden" value="0"/>
+                    <input type="hidden" name="handover_hidden" id="handover_hidden" value="0"/>
+                    <input type="hidden" name="amc_hidden" id="amc_hidden" value="0"/>
+                    <input type="hidden" name="service_hidden" id="service_hidden" value="0"/>
+                    <input type="hidden" name="handover_date_hidden" id="handover_date_hidden"/>
+                    <input type="hidden" name="amc_start_date_hidden" id="amc_start_date_hidden"/>
+                    <input type="hidden" name="amc_end_date_hidden" id="amc_end_date_hidden"/>
+                    <input type="hidden" name="renew_hidden" id="renew_hidden" value="0"/>
+                    <input type="hidden" name="not_renew_hidden" id="not_renew_hidden" value="0"/>
+                    <input type="hidden" name="renew_date_hidden" id="renew_date_hidden"/>
+
+                    <div class="mb-3">
+                        <label>Contact No</label>
+                        <input type="text" name="contact_no" class="form-control" t-att-value="client.contact_no" readonly="true"/>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Email</label>
+                        <input type="email" name="email" class="form-control" t-att-value="client.email"/>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Location</label>
+                        <input type="text" name="location" class="form-control" t-att-value="client.location"/>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Contact Address</label>
+                        <input type="text" name="contact_address" class="form-control" t-att-value="client.contact_address"/>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Model No</label>
+                        <input type="text" name="lead_model" class="form-control" t-att-value="client.lead_id.followup_ids[0].lead_model"/>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Floor</label>
+                        <input type="text" name="floor" class="form-control" t-att-value="client.floor"/>
+                    </div>
+
+                    <!-- <div class="mb-3">
+                        <label>Shaft</label>
+                        <input type="text" name="shaft" class="form-control" t-att-value="client.lead_id.followup_ids[0].shaft"/>
+                    </div> -->
+                    <div class="mb-3">
+                        <label>Shaft</label>
+                        <select name="shaft" class="form-control">
+                            <option value="">Select Shaft</option>
+                            <option value="Metal" t-att-selected="'Metal' == client.lead_id.followup_ids[0].shaft">Metal</option>
+                            <option value="Platform_lift" t-att-selected="'Platform_lift' == client.lead_id.followup_ids[0].shaft">Platform lift</option>
+                            <option value="Civil" t-att-selected="'Civil' == client.lead_id.followup_ids[0].shaft">Civil</option>
+                        </select>
+                    </div>
+
+
+                    <div class="mb-3">
+                        <label>Order Taken by</label>
+                        <input type="text" name="order_taken_by" class="form-control" t-att-value="client.order_taken_by"/>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Stage</label>
+                        <select name="stage_id" class="form-select" required="true">
+                            <!-- Default empty option if no stage set -->
+                            <option value="" t-att-selected="not client.stage_id">-- Select Stage --</option>
+
+                            <!-- Loop CRM Stages -->
+                            <t t-foreach="stages" t-as="stage">
+                                <option t-att-value="stage.id" t-att-selected="'selected' if client.stage_id and client.stage_id.id == stage.id else None">
+                                    <t t-esc="stage.name"/>
+                                </option>
+                            </t>
+                        </select>
+                    </div>
+
+
+
+                    <!-- <div class="mb-3">
+                        <label>Important Notes For CRM</label>
+                        <textarea class="form-control" rows="4" readonly="true">
+                            <t t-esc="client.lead_id.followup_ids[0].won_note if client.lead_id.followup_ids else ''"/>
+                        </textarea>
+
+                    </div> -->
+                    <div class="form-group mb-3">
+                        <label>Important Notes For CRM</label>
+                        <textarea class="form-control" rows="5" readonly="true" t-esc="client.lead_id.followup_ids and client.lead_id.followup_ids[0].won_note or ''"></textarea>
+
+                    </div>
+
+
+
+
+                    <div class="form-group mb-3">
+                        <label>Followup Description</label>
+                        <textarea name="followup_description" class="form-control" rows="5" required="true" />
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label>Next Followups Date
+                        (                            <span class="text-danger">Actual Followup Date: <t t-esc="client.date or ''"/>
+                            </span>)
+                        </label>
+                        <input type="date" name="date" class="form-control" required="true"/>
+                    </div>
+
+                    <h4>Previous Followup Details</h4>
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Entered Date</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-if="client.followup_history">
+                                <t t-foreach="client.followup_history.split('\n')" t-as="line">
+                                    <t t-if="line">
+                                        <tr>
+                                            <td>
+                                                <t t-esc="line.split(']')[0].replace('[','')"/>
+                                            </td>
+                                            <td>
+                                                <div style="max-height: 120px; overflow-y: auto; text-align: left;">
+                                                    <t t-esc="line.split(']')[1] if ']' in line else ''"/>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </t>
+                            </t>
+                            <t t-if="not client.followup_history">
+                                <tr>
+                                    <td colspan="2" class="text-center">No previous followups</td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+                    <h5 class="mt-4">Uploaded Documents</h5>
+                    <t t-set="attachments" t-value="request.env['ir.attachment'].sudo().search([('res_model','=','lead.followup'), ('res_id','=',followup.id)])"/>
+                    <table class="table table-sm table-striped">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Uploaded On</th>
+                                <th>Download</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-if="attachments">
+                                <t t-foreach="attachments" t-as="att">
+                                    <tr>
+                                        <td>
+                                            <t t-esc="att.name"/>
+                                        </td>
+                                        <td>
+                                            <t t-esc="att.create_date"/>
+                                        </td>
+                                        <td>
+                                            <a t-att-href="'/web/content/%s?download=true' % att.id" target="_blank" class="btn btn-link btn-sm">
+                                                Download
+                                            </a>
+                                            <a t-att-href="'/lead_followups/attachment/delete/%s' % att.id" class="btn btn-link btn-sm text-danger" title="Delete" onclick="return confirm('Are you sure you want to delete this document?');">
+                                                <i class="fa fa-trash"/>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </t>
+                            <t t-if="not attachments">
+                                <tr>
+                                    <td colspan="3" class="text-center">No documents uploaded</td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+
+                    <button type="submit" class="btn btn-primary">Update</button>
+                    <a href="/crm_client/list" class="btn btn-secondary">Cancel</a>
+                </form>
+                <div class="modal fade" id="stage1Modal" tabindex="-1" aria-labelledby="stage1ModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+
+                            <div class="modal-header d-flex justify-content-between align-items-center">
+                                <!-- Left: Title -->
+                                <h5 class="modal-title mb-0" id="stage1ModalLabel">Stage 1</h5>
+
+                                <!-- Middle: Enable Checkbox with spacing -->
+                                <div class="form-check ms-4">                                    <!-- Add margin-start -->
+                                    <input class="form-check-input" type="checkbox" id="site_visit" t-att-checked="client.site_visit and 'checked'" t-att-disabled="client.site_visit or client.stage1"/>
+                                    <label class="form-check-label" for="site_visit">Enable</label>
+                                </div>
+
+                                <!-- Right: Close Button -->
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"/>
+                            </div>
+
+
+                            <!-- Modal Body -->
+                            <div class="modal-body">
+
+                                <div class="form-check" id="sitevisitdonee">
+                                    <input class="form-check-input" type="checkbox" id="site_visit_done" t-att-checked="client.site_visit_done and 'checked'" t-att-disabled="client.site_visit_done or client.stage1 " />
+                                    <label class="form-check-label" for="site_visit_done">
+                        Site Visit Confirmed
+                                    </label>
+
+                                    <div class="form-group mt-3">
+                                        <label>Attachment</label>
+                                        <t t-if="client.stage11_attachment">
+                                            <a t-att-href="'/web/content/%s?download=true' % client.stage11_attachment.id" target="_blank" class="ms-2" title="Download Attachment">
+                                                <i class="fa fa-download fa-lg text-primary"></i>
+                                                <t t-esc="client.stage11_attachment.name"/>
+                                            </a>
+                                        </t>
+                                        <input type="file" id="stage1_attachment" class="form-control" t-att-disabled="client.stage1"/>
+                                        <button type="button" class="btn btn-primary" onclick="uploadStage1Attachment()" data-bs-dismiss="modal" t-att-disabled="client.stage1 and 'true'" style="
+                                            position: relative;
+                                            margin-top: 5px;
+                                        ">Upload</button>
+                                    </div>
+                                </div>
+
+
+                            </div>
+
+
+                            <div class="modal-footer">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="stage1" t-att-checked="client.stage1 and 'checked'" t-att-disabled="client.stage1 and 'true'" />
+                                    <label class="form-check-label" for="stage1">
+                            Stage 1 Completed
+                                    </label>
+                                </div>
+                                <t t-if="not client.stage1">
+                                    <button type="button" class="btn btn-secondary" onclick="validatestage1()" data-bs-dismiss="modal">Proceed</button>
+                                </t>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ==================== Stage2 ===================================== -->
+
+
+                <div class="modal fade" id="stage2Modal" tabindex="-1" aria-labelledby="stage2ModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+
+                            <div class="modal-header d-flex justify-content-between align-items-center">
+                                <h5 class="modal-title mb-0" id="stage2ModalLabel">Stage 2</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"/>
+                            </div>
+
+                            <div class="modal-body">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="drawing_sent" t-att-checked="client.drawing_sent and 'checked'" t-att-disabled="client.drawing_sent or client.stage2"/>
+                                    <label class="form-check-label" for="drawing_sent">Drawing Sent</label>
+                                    <t t-if="client.drawing_sent_attachment">
+                                        <a t-att-href="'/web/content/%s?download=true' % client.drawing_sent_attachment.id" target="_blank" class="ms-2" title="Download Attachment">
+                                            <i class="fa fa-download fa-lg text-primary"/>
+                                            <t t-esc="client.drawing_sent_attachment.name"/>
+                                        </a>
+
+                                    </t>
+                                </div>
+
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="Rev_1" t-att-checked="client.rev_1 and 'checked'" t-att-readonly="client.rev_1 and 'readonly'" t-att-disabled="client.rev_1 or client.stage2"/>
+                                    <label class="form-check-label" for="Rev_1">Rev 1</label>
+                                    <t t-if="client.rev_1_attachment">
+                                        <a t-att-href="'/web/content/%s?download=true' % client.rev_1_attachment.id" target="_blank" class="ms-2" title="Download Attachment">
+                                            <i class="fa fa-download fa-lg text-primary"/>
+                                            <t t-esc="client.rev_1_attachment.name"/>
+                                        </a>
+                                    </t>
+                                    <div id="rev_1_date_block">
+                                        <input type="date" class="form-control mt-2" name="rev_1_date" id="rev_1_date" t-att-value="client.rev_1_date or ''" t-att-disabled=" client.stage2"/>
+                                    </div>
+                                </div>
+
+                                <!-- Repeat for Rev 2–5 -->
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="Rev_2" t-att-checked="client.rev_2 and 'checked'" t-att-readonly="client.rev_2 and 'readonly'" t-att-disabled="client.rev_2 or client.stage2"/>
+                                    <label class="form-check-label" for="Rev_2">Rev 2</label>
+                                    <t t-if="client.rev_2_attachment">
+                                        <a t-att-href="'/web/content/%s?download=true' % client.rev_2_attachment.id" target="_blank" class="ms-2" title="Download Attachment">
+                                            <i class="fa fa-download fa-lg text-primary"/>
+                                            <t t-esc="client.rev_2_attachment.name"/>
+                                        </a>
+                                    </t>
+                                    <div id="rev_2_date_block">
+                                        <input type="date" class="form-control mt-2" name="rev_2_date" id="rev_2_date" t-att-value="client.rev_2_date or ''" t-att-disabled=" client.stage2"/>
+                                    </div>
+                                </div>
+
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="Rev_3" t-att-checked="client.rev_3 and 'checked'" t-att-readonly="client.rev_3 and 'readonly'" t-att-disabled="client.rev_3 or client.stage2"/>
+                                    <label class="form-check-label" for="Rev_3">Rev 3</label>
+                                    <t t-if="client.rev_3_attachment">
+                                        <a t-att-href="'/web/content/%s?download=true' % client.rev_3_attachment.id" target="_blank" class="ms-2" title="Download Attachment">
+                                            <i class="fa fa-download fa-lg text-primary"/>
+                                            <t t-esc="client.rev_3_attachment.name"/>
+                                        </a>
+                                    </t>
+                                    <div id="rev_3_date_block">
+                                        <input type="date" class="form-control mt-2" name="rev_3_date" id="rev_3_date" t-att-value="client.rev_3_date or ''" t-att-disabled=" client.stage2"/>
+                                    </div>
+                                </div>
+
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="Rev_4" t-att-checked="client.rev_4 and 'checked'" t-att-readonly="client.rev_4 and 'readonly'" t-att-disabled="client.rev_4 or client.stage2"/>
+                                    <label class="form-check-label" for="Rev_4">Rev 4</label>
+                                    <t t-if="client.rev_4_attachment">
+                                        <a t-att-href="'/web/content/%s?download=true' % client.rev_4_attachment.id" target="_blank" class="ms-2" title="Download Attachment">
+                                            <i class="fa fa-download fa-lg text-primary"/>
+                                            <t t-esc="client.rev_4_attachment.name"/>
+                                        </a>
+                                    </t>
+                                    <div id="rev_4_date_block">
+                                        <input type="date" class="form-control mt-2" name="rev_4_date" id="rev_4_date" t-att-value="client.rev_4_date or ''" t-att-disabled=" client.stage2"/>
+                                    </div>
+                                </div>
+
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="Rev_5" t-att-checked="client.rev_5 and 'checked'" t-att-readonly="client.rev_5 and 'readonly'" t-att-disabled="client.rev_5 or client.stage2"/>
+                                    <label class="form-check-label" for="Rev_5">Rev 5</label>
+                                    <t t-if="client.rev_5_attachment">
+                                        <a t-att-href="'/web/content/%s?download=true' % client.rev_5_attachment.id" target="_blank" class="ms-2" title="Download Attachment">
+                                            <i class="fa fa-download fa-lg text-primary"/>
+                                            <t t-esc="client.rev_5_attachment.name"/>
+                                        </a>
+                                    </t>
+                                    <div id="rev_5_date_block">
+                                        <input type="date" class="form-control mt-2" name="rev_5_date" id="rev_5_date" t-att-value="client.rev_5_date or ''" t-att-disabled=" client.stage2"/>
+                                    </div>
+                                </div>
+
+                                <div class="form-group mt-3">
+                                    <label for="stage2_attachment">Upload Diagram (Choose revision):</label>
+                                    <div class="d-flex gap-2 align-items-center">
+                                        <select id="stage2_upload_tag" class="form-select w-25" t-att-disabled="client.stage2">
+                                            <option value="drawing_sent">Drawing Sent</option>
+                                            <option value="rev_1">Rev 1</option>
+                                            <option value="rev_2">Rev 2</option>
+                                            <option value="rev_3">Rev 3</option>
+                                            <option value="rev_4">Rev 4</option>
+                                            <option value="rev_5">Rev 5</option>
+                                        </select>
+                                        <input type="file" id="stage2_attachment" class="form-control w-50" t-att-disabled="client.stage2"/>
+                                        <button type="button" class="btn btn-primary" onclick="uploadStage2Attachment()" t-att-disabled="client.stage2">Upload</button>
+                                    </div>
+                                </div>
+
+                                <input type="hidden" id="client_name" t-att-value="client.lead_id.name"/>
+                                <input type="hidden" id="client_id_stage2" t-att-value="client.id"/>
+
+                            </div>
+
+                            <div class="modal-footer">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="stage2" t-att-checked="client.stage2 and 'checked'" t-att-disabled="client.stage2 and 'true'"/>
+                                    <label class="form-check-label" for="stage2">Stage 2 Completed</label>
+                                </div>
+                                <t t-if="not client.stage2">
+                                    <button type="button" class="btn btn-secondary" onclick="validationstage2()" data-bs-dismiss="modal">Proceed</button>
+                                </t>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+
+
+
+                <!-- ================================ Stage 3 ========================== -->
+
+                <div class="modal fade" id="stage3Modal" tabindex="-1" aria-labelledby="stage3ModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+
+                            <!-- Modal Header -->
+                            <div class="modal-header d-flex justify-content-between align-items-center">
+                                <h5 class="modal-title mb-0" id="stage3ModalLabel">Stage 4</h5>
+
+
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"/>
+                            </div>
+
+                            <!-- Modal Body -->
+                            <div class="modal-body">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="redinessform" t-att-checked="client.redinessform and 'checked'" t-att-disabled="client.redinessform or client.stage4"/>
+                                    <label class="form-check-label" for="redinessform">Readiness Form</label>
+                                </div>
+
+                                <t t-if="client.redinessform_attachment">
+                                    <!-- Download Link -->
+                                    <div class="mt-3">
+                                        <a t-att-href="'/web/content/%s?download=true' % client.redinessform_attachment.id" class="btn btn-success btn-sm" target="_blank">
+                                            <t t-esc="client.redinessform_attachment.name"/>
+                                        </a>
+
+                                        <!-- Delete Button -->
+                                        <button type="button" class="btn btn-danger btn-sm" t-att-data-client-id="client.id" onclick="deleteStage3Attachment(this)" t-att-disabled="client.stage4">
+                            Delete
+                                        </button>
+                                    </div>
+                                </t>
+                                <t t-else="">
+                                    <!-- Upload Field -->
+                                    <div class="form-group mt-3">
+                                        <label for="stage3_attachment">Upload Attachment:</label>
+                                        <input type="file" id="stage3_attachment" class="form-control" t-att-disabled="client.stage4"/>
+                                    </div>
+                                    <input type="hidden" id="client_id" t-att-value="client.id"/>
+                                    <div class="mt-3">
+                                        <button type="button" class="btn btn-primary" onclick="uploadStage3Attachment()" t-att-disabled="client.stage4">Upload</button>
+                                    </div>
+                                </t>
+                            </div>
+
+                            <!-- Modal Footer -->
+                            <div class="modal-footer">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="stage4" t-att-checked="client.stage4 and 'checked'" t-att-disabled="client.stage4 and 'true'" />
+                                    <label class="form-check-label" for="stage4">
+                    Stage 4 Completed
+                                    </label>
+                                </div>
+                                <t t-if="not client.stage4">
+                                    <button type="button" class="btn btn-secondary" onclick="validateStage4()" data-bs-dismiss="modal">Proceed</button>
+                                </t>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- =============== Stage 4 ======================== -->
+
+                <div class="modal fade" id="stage4Modal" tabindex="-1" aria-labelledby="stage4ModalLabel" aria-hidden="true" t-att-data-client-id="client.id" t-att-data-client-name="client.lead_id">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+
+                            <!-- Header -->
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="stage4ModalLabel">Stage 3</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"/>
+                            </div>
+
+                            <!-- Body -->
+                            <div class="modal-body">
+                                <!-- Main Checkbox -->
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="finishes_form" t-att-checked="client.finishes_form and 'checked'" t-att-disabled="client.finishes_form or client.stage3"/>
+                                    <label class="form-check-label fw-bold" for="finishes_form">Finishes Forms</label>
+                                </div>
+
+                                <!-- Upload Section -->
+                                <label class="form-label fw-bold">Upload Documents</label>
+
+                                <!-- COP/Accent -->
+                                <div class="mb-3">
+                                    <label for="cop_accent" class="form-label">COP/Accent</label>
+                                    <t t-if="client.cop_accent">
+                                        <a t-att-href="'/web/content/%s?download=true' % client.cop_accent.id" target="_blank" class="ms-2" title="Download Attachment">
+                                            <i class="fa fa-download fa-lg text-primary"></i>
+                                            <t t-esc="client.cop_accent.name"/>
+                                        </a>
+                                    </t>
+
+                                    <div class="input-group">
+                                        <input type="file" class="form-control" id="cop_accent" name="cop_accent" t-att-disabled="client.stage3"/>
+
+                                    </div>
+                                </div>
+
+                                <!-- Cabin/Interiors -->
+                                <div class="mb-3">
+                                    <label for="cabin_interiors" class="form-label">Cabin/Interiors</label>
+                                    <t t-if="client.cabin_interiors">
+                                        <a t-att-href="'/web/content/%s?download=true' % client.cabin_interiors.id" target="_blank" class="ms-2" title="Download Attachment">
+                                            <i class="fa fa-download fa-lg text-primary"></i>
+                                            <t t-esc="client.cabin_interiors.name"/>
+                                        </a>
+                                    </t>
+                                    <div class="input-group">
+                                        <input type="file" class="form-control" id="cabin_interiors" name="cabin_interiors" t-att-disabled="client.stage3"/>
+
+                                    </div>
+                                </div>
+
+                                <!-- Doors -->
+                                <div class="mb-3">
+                                    <label for="doors" class="form-label">Doors</label>
+                                    <t t-if="client.doors">
+                                        <a t-att-href="'/web/content/%s?download=true' % client.doors.id" target="_blank" class="ms-2" title="Download Attachment">
+                                            <i class="fa fa-download fa-lg text-primary"></i>
+                                            <t t-esc="client.doors.name"/>
+                                        </a>
+                                    </t>
+                                    <div class="input-group">
+                                        <input type="file" class="form-control" id="doors" name="doors" t-att-disabled="client.stage3"/>
+
+                                    </div>
+                                </div>
+
+                                <!-- Ceiling -->
+                                <div class="mb-3">
+                                    <label for="ceiling" class="form-label">Ceiling</label>
+                                    <t t-if="client.ceiling">
+                                        <a t-att-href="'/web/content/%s?download=true' % client.ceiling.id" target="_blank" class="ms-2" title="Download Attachment">
+                                            <i class="fa fa-download fa-lg text-primary"></i>
+                                            <t t-esc="client.ceiling.name"/>
+                                        </a>
+                                    </t>
+                                    <div class="input-group">
+                                        <input type="file" class="form-control" id="ceiling" name="ceiling" t-att-disabled="client.stage3"/>
+
+                                    </div>
+                                </div>
+
+                                <!-- CabinRel Color -->
+                                <div class="mb-3">
+                                    <label for="cabin_rel_color" class="form-label">CabinRel Color</label>
+                                    <t t-if="client.cabin_rel_color">
+                                        <a t-att-href="'/web/content/%s?download=true' % client.cabin_rel_color.id" target="_blank" class="ms-2" title="Download Attachment">
+                                            <i class="fa fa-download fa-lg text-primary"></i>
+                                            <t t-esc="client.cabin_rel_color.name"/>
+                                        </a>
+                                    </t>
+                                    <div class="input-group">
+                                        <input type="file" class="form-control" id="cabin_rel_color" name="cabin_rel_color" t-att-disabled="client.stage3"/>
+
+                                    </div>
+                                </div>
+
+                                <!-- Flooring -->
+                                <div class="mb-3">
+                                    <label for="flooring" class="form-label">Flooring</label>
+                                    <t t-if="client.flooring">
+                                        <a t-att-href="'/web/content/%s?download=true' % client.flooring.id" target="_blank" class="ms-2" title="Download Attachment">
+                                            <i class="fa fa-download fa-lg text-primary"></i>
+                                            <t t-esc="client.flooring.name"/>
+                                        </a>
+                                    </t>
+                                    <div class="input-group">
+                                        <input type="file" class="form-control" id="flooring" name="flooring" t-att-disabled="client.stage3"/>
+
+                                    </div>
+                                </div>
+
+                                <!-- Glass Wall 1 -->
+                                <div class="mb-3">
+                                    <label for="glass_wall_1" class="form-label">Glass Wall 1</label>
+                                    <t t-if="client.glass_wall_1">
+                                        <a t-att-href="'/web/content/%s?download=true' % client.glass_wall_1.id" target="_blank" class="ms-2" title="Download Attachment">
+                                            <i class="fa fa-download fa-lg text-primary"></i>
+                                            <t t-esc="client.glass_wall_1.name"/>
+                                        </a>
+                                    </t>
+                                    <div class="input-group">
+                                        <input type="file" class="form-control" id="glass_wall_1" name="glass_wall_1" t-att-disabled="client.stage3"/>
+
+                                    </div>
+                                </div>
+
+                                <!-- Glass Wall 2 -->
+                                <div class="mb-3">
+                                    <label for="glass_wall_2" class="form-label">Glass Wall 2</label>
+                                    <t t-if="client.glass_wall_2">
+                                        <a t-att-href="'/web/content/%s?download=true' % client.glass_wall_2.id" target="_blank" class="ms-2" title="Download Attachment">
+                                            <i class="fa fa-download fa-lg text-primary"></i>
+                                            <t t-esc="client.glass_wall_2.name"/>
+                                        </a>
+                                    </t>
+                                    <div class="input-group">
+                                        <input type="file" class="form-control" id="glass_wall_2" name="glass_wall_2" t-att-disabled="client.stage3"/>
+
+                                    </div>
+                                </div>
+
+                                <!-- Outer Shaft Color -->
+                                <div class="mb-3">
+                                    <label for="outer_shaft_color" class="form-label">Outer Shaft Color</label>
+                                    <t t-if="client.outer_shaft_color">
+                                        <a t-att-href="'/web/content/%s?download=true' % client.outer_shaft_color.id" target="_blank" class="ms-2" title="Download Attachment">
+                                            <i class="fa fa-download fa-lg text-primary"></i>
+                                            <t t-esc="client.outer_shaft_color.name"/>
+                                        </a>
+                                    </t>
+                                    <div class="input-group">
+                                        <input type="file" class="form-control" id="outer_shaft_color" name="outer_shaft_color" t-att-disabled="client.stage3"/>
+
+                                    </div>
+                                </div>
+
+                                <!-- Others -->
+                                <div class="mb-3">
+                                    <label for="others" class="form-label">Others</label>
+                                    <t t-if="client.others">
+                                        <a t-att-href="'/web/content/%s?download=true' % client.others.id" target="_blank" class="ms-2" title="Download Attachment">
+                                            <i class="fa fa-download fa-lg text-primary"></i>
+                                            <t t-esc="client.others.name"/>
+                                        </a>
+                                    </t>
+                                    <div class="input-group">
+                                        <input type="file" class="form-control" id="others" name="others" t-att-disabled="client.stage3"/>
+
+                                    </div>
+                                </div>
+
+                                <!-- Remarks -->
+                                <div class="mb-3 mt-3">
+                                    <label for="remarks" class="form-label fw-bold">Remark</label>
+                                    <textarea id="remarks" name="remarks" class="form-control" rows="3" t-esc="client.finishes_remarks or ''" t-att-disabled="client.stage3"/>
+                                </div>
+                            </div>
+
+                            <!-- Footer -->
+                            <div class="modal-footer">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="stage3" t-att-checked="client.stage3 and 'checked'" t-att-disabled="client.stage3 and 'true'" />
+                                    <label class="form-check-label" for="stage3">
+                    Stage 3 Completed
+                                    </label>
+                                </div>
+                                <t t-if="not client.stage3">
+                                    <button type="button" class="btn btn-primary" id="save_stage4" onclick="saveAttachments()">Save</button>
+                                </t>
+
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- =========== stage 5 =================== -->
+
+                <div class="modal fade" id="stage5Modal" tabindex="-1" aria-labelledby="stage5ModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+
+                            <!-- Header -->
+                            <div class="modal-header d-flex justify-content-between align-items-center">
+                                <h5 class="modal-title mb-0" id="stage5ModalLabel">Stage 5</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"/>
+                            </div>
+
+                            <!-- Body -->
+                            <div class="modal-body">
+
+                                <!-- Readiness Notification -->
+                                <div class="form-check mb-3">
+                                    <input type="checkbox" class="form-check-input" name="readiness_notification" id="readiness_notification" t-att-checked="client.readiness_notification and 'checked'" t-att-disabled="client.readiness_notification or client.stage5"/>
+                                    <label class="form-check-label fw-bold" for="readiness_notification">
+                        Readiness Notification
+                                    </label>
+                                </div>
+
+                                <!-- Advance Paid -->
+                                <div class="border p-3 mb-3 rounded">
+                                    <h6 class="fw-bold">Advance Paid</h6>
+                                    <div class="mb-2">
+                                        <label>Percentage:</label>
+                                        <input type="number" min="1" max="100" class="form-control" name="advance_paid_percentage" id="advance_paid_percentage" t-att-value="client.advance_paid_percentage or ''" t-att-disabled="client.advance_paid_checkbox or client.stage5" oninput="if (this.value &gt; 100) this.value = 100; if (this.value &lt; 0) this.value = 0;"/>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input type="checkbox" class="form-check-input" name="advance_paid_checkbox" id="advance_paid_checkbox" t-att-checked="client.advance_paid_checkbox and 'checked'" t-att-disabled="client.advance_paid_checkbox or client.stage5"/>
+                                        <label class="form-check-label" for="advance_paid_checkbox">Advance Paid</label>
+                                    </div>
+                                    <div class="mb-2">
+                                        <label>Amount:</label>
+                                        <input type="number" class="form-control" name="advance_paid_amount" id="advance_paid_amount" t-att-value="client.advance_paid_amount or ''" t-att-disabled="client.advance_paid_checkbox or client.stage5"/>
+                                    </div>
+                                    <div class="form-group mt-3">
+                                        <label>Upload Payment Receipt:</label>
+                                        <t t-if="client.advance_paid_attachment">
+                                            <a t-att-href="'/web/content/%s?download=true' % client.advance_paid_attachment.id" target="_blank" class="ms-2" title="Download Attachment">
+                                                <i class="fa fa-download fa-lg text-primary"/>
+                                                <t t-esc="client.advance_paid_attachment.name"/>
+                                            </a>
+                                        </t>
+                                        <input type="file" id="stage51_attachment" class="form-control" t-att-disabled="client.stage5"/>
+                                    </div>
+                                    <input type="hidden" id="client_id" t-att-value="client.id"/>
+                                    <div class="mt-3">
+                                        <button type="button" class="btn btn-primary" onclick="uploadStage5Attachment1()" t-att-disabled="client.stage5">Upload</button>
+                                    </div>
+                                </div>
+
+                                <!-- Readiness Collected -->
+                                <div class="border p-3 mb-3 rounded">
+                                    <h6 class="fw-bold">Readiness Collected</h6>
+                                    <div class="mb-2">
+                                        <label>Percentage:</label>
+                                        <input type="number" min="1" max="100" class="form-control" name="readiness_collected_percentage" id="readiness_collected_percentage" t-att-value="client.readiness_collected_percentage or ''" t-att-disabled="client.readiness_collected_checkbox or client.stage5" oninput="if (this.value &gt; 100) this.value = 100; if (this.value &lt; 0) this.value = 0;"/>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input type="checkbox" class="form-check-input" name="readiness_collected_checkbox" id="readiness_collected_checkbox" t-att-checked="client.readiness_collected_checkbox and 'checked'" t-att-disabled="client.readiness_collected_checkbox or client.stage5"/>
+                                        <label class="form-check-label" for="readiness_collected_checkbox">Advance Paid</label>
+                                    </div>
+                                    <div class="mb-2">
+                                        <label>Amount:</label>
+                                        <input type="number" class="form-control" name="readiness_collected_amount" id="readiness_collected_amount" t-att-value="client.readiness_collected_amount or ''" t-att-disabled="client.readiness_collected_checkbox or client.stage5"/>
+                                    </div>
+                                    <div class="form-group mt-3">
+                                        <label>Upload Payment Receipt:</label>
+                                        <t t-if="client.readiness_collected_attachment">
+                                            <a t-att-href="'/web/content/%s?download=true' % client.readiness_collected_attachment.id" target="_blank" class="ms-2" title="Download Attachment">
+                                                <i class="fa fa-download fa-lg text-primary"/>
+                                                <t t-esc="client.readiness_collected_attachment.name"/>
+                                            </a>
+                                        </t>
+                                        <input type="file" id="stage52_attachment" class="form-control" t-att-disabled="client.stage5"/>
+                                    </div>
+                                    <input type="hidden" id="client_id" t-att-value="client.id"/>
+                                    <div class="mt-3">
+                                        <button type="button" class="btn btn-primary" onclick="uploadStage5Attachment2()" t-att-disabled="client.stage5">Upload</button>
+                                    </div>
+                                </div>
+
+                                <!-- Handover Done -->
+                                <div class="border p-3 mb-3 rounded">
+                                    <h6 class="fw-bold">Handover Done</h6>
+                                    <div class="mb-2">
+                                        <label>Percentage:</label>
+                                        <input type="number" min="1" max="100" class="form-control" name="handover_percentage" id="handover_percentage" t-att-value="client.handover_percentage or ''" t-att-disabled="client.handover_checkbox or client.stage5" oninput="if (this.value &gt; 100) this.value = 100; if (this.value &lt; 0) this.value = 0;"/>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input type="checkbox" class="form-check-input" name="handover_checkbox" id="handover_checkbox" t-att-checked="client.handover_checkbox and 'checked'" t-att-disabled="client.handover_checkbox or client.stage5"/>
+                                        <label class="form-check-label" for="handover_checkbox">Advance Paid</label>
+                                    </div>
+                                    <div class="mb-2">
+                                        <label>Amount:</label>
+                                        <input type="number" class="form-control" name="handover_amount" id="handover_amount" t-att-value="client.handover_amount or ''" t-att-disabled="client.handover_checkbox or client.stage5"/>
+                                    </div>
+                                    <div class="form-group mt-3">
+                                        <label>Upload Payment Receipt:</label>
+                                        <t t-if="client.handover_attachment">
+                                            <a t-att-href="'/web/content/%s?download=true' % client.handover_attachment.id" target="_blank" class="ms-2" title="Download Attachment">
+                                                <i class="fa fa-download fa-lg text-primary"/>
+                                                <t t-esc="client.handover_attachment.name"/>
+                                            </a>
+                                        </t>
+                                        <input type="file" id="stage53_attachment" class="form-control" t-att-disabled="client.stage5"/>
+                                    </div>
+                                    <input type="hidden" id="client_id" t-att-value="client.id"/>
+                                    <div class="mt-3">
+                                        <button type="button" class="btn btn-primary" onclick="uploadStage5Attachment3()" t-att-disabled="client.stage5">Upload</button>
+                                    </div>
+                                </div>
+
+                                <!-- Balance -->
+                                <div class="border p-3 mb-3 rounded">
+                                    <h6 class="fw-bold">Balance</h6>
+                                    <div class="mb-2">
+                                        <label>Percentage:</label>
+                                        <input type="number" min="1" max="100" class="form-control" name="balance_percentage" id="balance_percentage" t-att-value="client.balance_percentage or ''" t-att-disabled="client.balance_checkbox or client.stage5" oninput="if (this.value &gt; 100) this.value = 100; if (this.value &lt; 0) this.value = 0;"/>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input type="checkbox" class="form-check-input" name="balance_checkbox" id="balance_checkbox" t-att-checked="client.balance_checkbox and 'checked'" t-att-disabled="client.balance_checkbox or client.stage5"/>
+                                        <label class="form-check-label" for="balance_checkbox">Advance Paid</label>
+                                    </div>
+                                    <div class="mb-2">
+                                        <label>Amount:</label>
+                                        <input type="number" class="form-control" name="balance_amount" id="balance_amount" t-att-value="client.balance_amount or ''" t-att-disabled="client.balance_checkbox or client.stage5"/>
+                                    </div>
+                                    <div class="form-group mt-3">
+                                        <label>Upload Payment Receipt:</label>
+                                        <t t-if="client.balance_attachment">
+                                            <a t-att-href="'/web/content/%s?download=true' % client.balance_attachment.id" target="_blank" class="ms-2" title="Download Attachment">
+                                                <i class="fa fa-download fa-lg text-primary"/>
+                                                <t t-esc="client.balance_attachment.name"/>
+                                            </a>
+                                        </t>
+                                        <input type="file" id="stage54_attachment" class="form-control" t-att-disabled=" client.stage5"/>
+                                    </div>
+                                    <input type="hidden" id="client_id" t-att-value="client.id"/>
+                                    <div class="mt-3">
+                                        <button type="button" class="btn btn-primary" onclick="uploadStage5Attachment4()" t-att-disabled="client.stage5">Upload</button>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <!-- Footer -->
+                            <div class="modal-footer">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="stage5" t-att-checked="client.stage5 and 'checked'" t-att-disabled="client.stage5 and 'true'"/>
+                                    <label class="form-check-label" for="stage5">
+                        Stage 5 Completed
+                                    </label>
+                                </div>
+                                <t t-if="client.stage5">
+                                    <button type="button" class="btn btn-warning" id="editStage5Btn">Edit Request</button>
+                                </t>
+                                <!-- <t t-if="not client.stage5"> -->
+                                <button type="button" class="btn btn-secondary" onclick="validateStage5()" data-bs-dismiss="modal" t-att-disabled="client.stage5">Proceed</button>
+                                <!-- </t> -->
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============================ stage 6 ===================== -->
+
+                <div class="modal fade" id="stage6Modal" tabindex="-1" aria-labelledby="stage6ModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+
+                            <!-- Modal Header -->
+                            <div class="modal-header d-flex justify-content-between align-items-center">
+                                <h5 class="modal-title mb-0" id="stage6ModalLabel">Stage 6</h5>
+
+
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"/>
+                            </div>
+
+                            <!-- Modal Body -->
+                            <div class="modal-body">
+                                <div class="border p-3 mb-3 rounded">
+                                    <div class="form-check mb-2">
+                                        <input type="checkbox" class="form-check-input" name="material_dispatch" id="material_dispatch" t-att-checked="client.material_dispatch and 'checked'" t-att-disabled="client.material_dispatch or client.stage6"/>
+                                        <label class="form-check-label fw-bold" for="material_dispatch">Material Dispatch</label>
+                                    </div>
+                                    <div class="mb-2">
+                                        <label>Date:</label>
+                                        <input type="date" class="form-control" name="material_dispatch_date" id="material_dispatch_date" t-att-value="client.material_dispatch_date or ''" t-att-disabled="client.stage6"/>
+                                    </div>
+                                    <!-- <div class="mb-2">
+                                        <label>Upload eBay Bill (Mandatory):</label>
+                                        <input type="file" class="form-control" name="material_dispatch_attachment" required="true"/>
+                                    </div> -->
+                                    <div class="form-group mt-3">
+                                        <label>Upload eBill:</label>
+                                        <t t-if="client.material_dispatch_attachment">
+                                            <a t-att-href="'/web/content/%s?download=true' % client.material_dispatch_attachment.id" target="_blank" class="ms-2" title="Download Attachment">
+                                                <i class="fa fa-download fa-lg text-primary"/>
+                                                <t t-esc="client.material_dispatch_attachment.name"/>
+                                            </a>
+                                        </t>
+                                        <input type="file" id="stage6_attachment" class="form-control" t-att-disabled="client.stage6"/>
+                                    </div>
+                                    <input type="hidden" id="client_id" t-att-value="client.id"/>
+                                    <div class="mt-3">
+                                        <button type="button" class="btn btn-primary" onclick="uploadStage6Attachment()" t-att-disabled="client.stage6">Upload</button>
+                                    </div>
+                                </div>
+
+                                <!-- Material Delivery -->
+                                <div class="border p-3 mb-3 rounded">
+                                    <div class="form-check mb-2">
+                                        <input type="checkbox" class="form-check-input" name="material_delivery" id="material_delivery" t-att-checked="client.material_delivery and 'checked'" t-att-disabled="client.material_delivery or client.stage6"/>
+                                        <label class="form-check-label fw-bold" for="material_delivery">Material Delivery</label>
+                                    </div>
+                                    <div class="mb-2">
+                                        <label>Date:</label>
+                                        <input type="date" class="form-control" name="material_delivery_date" id="material_delivery_date" t-att-value="client.material_delivery_date or ''" t-att-disabled="client.stage6"/>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Modal Footer -->
+                            <div class="modal-footer">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="stage6" t-att-checked="client.stage6 and 'checked'" t-att-disabled="client.stage6 and 'true'"/>
+                                    <label class="form-check-label" for="stage6">
+                            Stage 6 Completed
+                                    </label>
+                                </div>
+                                <t t-if="not client.stage6">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="validateStage6()">Proceed</button>
+                                </t>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- =========== stage 7 ========== -->
+                <div class="modal fade" id="stage7Modal" tabindex="-1" aria-labelledby="stage7ModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+
+                            <!-- Modal Header -->
+                            <div class="modal-header d-flex justify-content-between align-items-center">
+                                <h5 class="modal-title mb-0" id="stage7ModalLabel">Stage 7</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"/>
+                            </div>
+
+                            <!-- Modal Body -->
+                            <div class="modal-body">
+                                <div class="border p-3 mb-3 rounded">
+
+                                    <!-- <div class="mb-2">
+                                        <label>Amount:</label>
+                                        <input type="number" class="form-control" name="preinstallation_amount" id="preinstallation_amount" t-att-value="client.preinstallation_amount or ''" t-att-disabled="client.preinstallation_amount and 'true'" required="true"/>
+                                    </div> -->
+
+                                    <div class="mb-3">
+                                        <label for="start_installation">Start Installation:</label>
+                                        <select class="form-select" name="start_installation" id="start_installation" t-att-disabled="client.stage7 and 'true'">
+                                            <option t-att-selected="client.start_installation=='yes'">Yes</option>
+                                            <option t-att-selected="client.start_installation=='no'">No</option>
+                                        </select>
+                                    </div>
+
+
+
+
+                                    <div class="form-group mt-3">
+                                        <label>Attachment</label>
+                                        <t t-if="client.preinstallation_attachment">
+                                            <a t-att-href="'/web/content/%s?download=true' % client.preinstallation_attachment.id" target="_blank" class="ms-2" title="Download Attachment">
+                                                <i class="fa fa-download fa-lg text-primary"></i>
+                                                <t t-esc="client.preinstallation_attachment.name"/>
+                                            </a>
+                                        </t>
+                                        <input type="file" id="stage7_attachment" class="form-control" t-att-disabled="client.stage7"/>
+                                    </div>
+                                    <input type="hidden" id="client_id" t-att-value="client.id"/>
+                                    <div class="mt-3">
+                                        <!-- <button type="button" class="btn btn-primary" onclick="uploadStage7Attachment()" t-att-disabled="client.preinstallation_attachment">Upload</button> -->
+                                    </div>
+
+
+                                </div>
+
+
+                            </div>
+
+                            <!-- Modal Footer -->
+                            <div class="modal-footer">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="stage7" t-att-checked="client.stage7 and 'checked'" t-att-disabled="client.stage7 and 'true'" />
+                                    <label class="form-check-label" for="stage7">
+                            Stage 7 Completed
+                                    </label>
+                                </div>
+
+                                <t t-if="not client.stage7">
+                                    <t t-if = "not client.preinstallation_attachment">
+                                        <button type="button" class="btn btn-primary" onclick="uploadStage7Attachment()" data-bs-dismiss="modal" t-att-disabled="client.preinstallation_attachment">Proceed</button>
+                                    </t>
+                                    <t t-else="">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="validatestage7()">Proceed</button>
+                                    </t>
+                                </t>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- ========== stage 8 ========== -->
+
+                <div class="modal fade" id="stage8Modal" tabindex="-1" aria-labelledby="stage8ModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+
+                            <!-- Modal Header -->
+                            <div class="modal-header d-flex justify-content-between align-items-center">
+                                <h5 class="modal-title mb-0" id="stage8ModalLabel">Stage 8</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+
+                            <!-- Modal Body -->
+                            <div class="modal-body">
+                                <div class="form-check mb-2">
+                                    <input type="checkbox" class="form-check-input" name="ongoing" id="ongoing" t-att-checked="'checked' if client.ongoing else None" t-att-disabled="'disabled' if client.ongoing or client.stage8 else None"/>
+                                    <label class="form-check-label fw-bold" for="ongoing">Ongoing</label>
+                                </div>
+
+                                <div class="form-check mb-2">
+                                    <input type="checkbox" class="form-check-input" name="completed" id="completed" t-att-checked="'checked' if client.completed else None" t-att-disabled="'disabled' if client.completed or client.stage8 else None"/>
+                                    <label class="form-check-label fw-bold" for="completed">Completed</label>
+                                </div>
+
+                                <div class="border p-3 mb-3 rounded">
+                                    <div class="form-check mb-2">
+                                        <input type="checkbox" class="form-check-input" name="handover" id="handover" t-att-checked="'checked' if client.handover else None" t-att-disabled="'disabled' if client.handover or client.stage8 else None"/>
+                                        <label class="form-check-label fw-bold" for="handover">Handover</label>
+                                        <input type="date" class="form-control mt-2" name="handover_date" id="handover_date" t-att-value="client.handover_date or ''" t-att-readonly="'readonly' if client.handover_date or client.stage8 else None" t-att-disabled="'disabled' if client.handover_date or client.stage8 else None"/>
+                                    </div>
+
+                                    <div class="form-group mt-3">
+                                        <label>Attachment</label>
+                                        <t t-if="client.attachment_handover">
+                                            <a t-att-href="'/web/content/%s?download=true' % client.attachment_handover.id" target="_blank" class="ms-2" title="Download Attachment">
+                                                <i class="fa fa-download fa-lg text-primary"></i>
+                                            </a>
+                                        </t>
+                                        <input type="file" id="stage8_attachment" class="form-control" t-att-disabled="'disabled' if client.attachment_handover or client.stage8 else None"/>
+                                    </div>
+
+                                    <input type="hidden" id="client_id" t-att-value="client.id"/>
+                                    <div class="mt-3">
+                                        <button type="button" class="btn btn-primary" onclick="uploadStage8Attachment()" t-att-disabled="client.stage8">Upload</button>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <!-- Modal Footer -->
+                            <div class="modal-footer">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="stage8" t-att-checked="'checked' if client.stage8 else None" t-att-disabled="'disabled' if client.stage8  else None"/>
+                                    <label class="form-check-label" for="stage8">Stage 8 Completed</label>
+                                </div>
+                                <t t-if="not client.stage8">
+                                    <button type="button" class="btn btn-secondary" onclick="validatestage8()" data-bs-dismiss="modal">Proceed</button>
+                                </t>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- =========== stage 9 ============= -->
+
+                <div class="modal fade" id="stage9Modal" tabindex="-1" aria-labelledby="stage9ModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+
+                            <!-- Modal Header -->
+                            <div class="modal-header d-flex justify-content-between align-items-center">
+                                <h5 class="modal-title mb-0" id="stage9ModalLabel">Stage 9</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"/>
+                            </div>
+
+                            <!-- Modal Body -->
+                            <div class="modal-body">
+                                <div class="border p-3 mb-3 rounded">
+
+                                    <div class="form-check mb-2">
+                                        <!-- AMC Checkbox -->
+                                        <input type="radio" class="form-check-input" name="type" id="amc" t-att-checked="'checked' if client.amc else None" t-att-disabled="'disabled' if client.stage9  else None"/>
+                                        <label class="form-check-label fw-bold" for="amc">AMC</label>
+
+                                        <!-- AMC Start & End Dates -->
+                                        <div class="mt-2">
+                                            <label class="form-label" for="amc_start_date">Start Date</label>
+                                            <input type="date" class="form-control" name="amc_start_date" id="amc_start_date" t-att-value="client.amc_start_date or ''" t-att-disabled="'disabled' if client.stage9  else None"/>
+
+                                            <label class="form-label mt-2" for="amc_end_date">End Date</label>
+                                            <input type="date" class="form-control" name="amc_end_date" id="amc_end_date" t-att-value="client.amc_end_date or ''" t-att-disabled="'disabled' if client.stage9  else None"/>
+                                        </div>
+                                        <!-- t-att-readonly="'readonly' if client.amc_end_date else None" -->
+                                        <div class="mt-3 ps-3" id="renew_block">
+                                            <label class="form-label fw-bold">Renewal</label>
+                                            <br/>
+
+                                            <div class="d-flex gap-4">
+                                                <!-- Renew -->
+                                                <div class="form-check form-check-inline">
+                                                    <input type="radio" class="form-check-input" name="renew_choice" id="renew" value="renew" t-att-checked="'checked' if client.renew else None" t-att-disabled="client.stage9 "/>
+                                                    <label class="form-check-label" for="renew">Renew</label>
+                                                </div>
+
+                                                <!-- Not Renew -->
+                                                <div class="form-check form-check-inline">
+                                                    <input type="radio" class="form-check-input" name="renew_choice" id="not_renew" value="not_renew" t-att-checked="'checked' if client.not_renew else None" t-att-disabled="client.stage9 "/>
+                                                    <label class="form-check-label" for="not_renew">Not Renew</label>
+                                                </div>
+                                            </div>
+
+                                            <!-- Renew Date -->
+                                            <div class="mt-2" id="renew_date_block">
+                                                <label class="form-label" for="renew_date">Renew Date</label>
+                                                <input type="date" class="form-control" name="renew_date" id="renew_date" t-att-value="client.renew_date or ''" t-att-disabled="client.stage9 " />
+                                            </div>
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="form-check mb-2">
+                                    <input type="radio" class="form-check-input" name="type" id="service" t-att-checked="'checked' if (client.service) else None" t-att-disabled="'disabled' if client.stage9 else None"/>
+                                    <label class="form-check-label fw-bold" for="service">Service</label>
+                                </div>
+
+
+                            </div>
+
+                            <!-- Modal Footer -->
+                            <div class="modal-footer">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="stage9" t-att-checked="client.stage9 and 'checked'" t-att-disabled="client.stage9 and 'true'" />
+                                    <label class="form-check-label" for="stage9">
+                            Stage 9 Completed
+                                    </label>
+                                </div>
+
+                                <t t-if="not client.stage9">
+                                    <button type="button" class="btn btn-secondary" onclick="validatestage9()" data-bs-dismiss="modal">Proceed</button>
+
+                                </t>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ========== prod stage 1 ========== -->
+
+                <div class="modal fade" id="Pstage1Modal" tabindex="-1" aria-labelledby="stage11ModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+
+                            <div class="modal-header d-flex justify-content-between align-items-center">
+                                <!-- Left: Title -->
+                                <h5 class="modal-title mb-0" id="Pstage1ModalLabel">Stage 1</h5>
+
+                                <!-- Right: Close Button -->
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"/>
+                            </div>
+
+
+                            <!-- Modal Body -->
+                            <!-- Modal Body -->
+                            <div class="modal-body">
+                                <form id="Pstage1Form">
+
+                                    <!-- Upload multiple images -->
+                                    <div class="mb-3">
+                                        <label for="siteVisitImages" class="form-label">Site Visit Report Images</label>
+                                        <input class="form-control" type="file" name="siteVisitImages[]" accept="image/*" multiple="True" t-att-disabled="True"/>
+                                        <label>Attachment</label>
+                                        <t t-if="prod.site_visit_images">
+                                            <t t-foreach="prod.site_visit_images" t-as="att">
+                                                <a t-att-href="'/web/content/%s?download=true' % att.id" target="_blank" class="ms-2 d-block" title="Download Attachment">
+                                                    <i class="fa fa-download fa-lg text-primary"></i>
+                                                    <t t-esc="att.name"/>
+                                                </a>
+
+                                            </t>
+                                        </t>
+                                        <t t-else="">
+                                            <span class="text-muted">No attachment</span>
+                                        </t>
+
+                                    </div>
+
+                                    <!-- Site Visit Person Name -->
+                                    <div class="mb-3">
+                                        <label for="visitPerson" class="form-label">Name of Site Visit Person</label>
+                                        <input type="text" class="form-control" name="visitPerson" placeholder="Enter name" t-att-value="prod.site_visit_person" t-att-disabled="True"/>
+                                    </div>
+
+                                    <!-- Model No -->
+                                    <div class="mb-3">
+                                        <label for="modelNo" class="form-label">Model No</label>
+                                        <select class="form-select" name="modelNo" t-att-disabled="True">
+                                            <option value="" t-att-selected="not prod.model_no">-- Select Model --</option>
+                                            <option value="SE1" t-att-selected="prod.model_no == 'SE1'">SE1</option>
+                                            <option value="SE2" t-att-selected="prod.model_no == 'SE2'">SE2</option>
+                                            <option value="SE3" t-att-selected="prod.model_no == 'SE3'">SE3</option>
+                                            <option value="SE3+" t-att-selected="prod.model_no == 'SE3+'">SE3+</option>
+                                            <option value="X3" t-att-selected="prod.model_no == 'X3'">X3</option>
+                                            <option value="TEZ" t-att-selected="prod.model_no == 'TEZ'">TEZ</option>
+                                            <option value="others" t-att-selected="prod.model_no == 'others'">Others</option>
+                                        </select>
+                                    </div>
+
+
+                                    <!-- Shaft Type -->
+                                    <div class="mb-3">
+                                        <label for="shaftType" class="form-label">Shaft Type</label>
+                                        <select class="form-select" name="shaftType" t-att-disabled="True">
+                                            <option value="" t-att-selected="not prod.shaft_type">-- Select Shaft Type --</option>
+                                            <option value="glass" t-att-selected="prod.shaft_type == 'glass'">Glass</option>
+                                            <option value="3_side_wall" t-att-selected="prod.shaft_type == '3_side_wall'">3 Side Wall</option>
+                                        </select>
+                                    </div>
+
+                                </form>
+                            </div>
+
+
+
+                            <div class="modal-footer">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" t-att-checked="prod.stage1 and 'checked'" t-att-disabled="True" />
+                                    <label class="form-check-label" for="stage1">
+                            Stage 1 Completed
+                                    </label>
+                                </div>
+
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ========= prod stage 2 ============ -->
+
+                <div class="modal fade" id="Pstage2Modal" tabindex="-1" aria-labelledby="stage2ModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+
+                            <div class="modal-header d-flex justify-content-between align-items-center">
+                                <!-- Left: Title -->
+                                <h5 class="modal-title mb-0" id="Pstage2ModalLabel">Stage 2</h5>
+
+
+
+
+                                <!-- Right: Close Button -->
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"/>
+                            </div>
+
+
+                            <!-- Modal Body -->
+                            <!-- Modal Body -->
+                            <div class="modal-body">
+                                <form id="Pstage2Form">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" t-att-checked="prod.drawing_sent and 'checked'" t-att-disabled="True"/>
+                                        <label class="form-check-label" for="drawing_sent">Drawing Sent</label>
+                                        <t t-if="prod.drawing_sent_attachment">
+                                            <a t-att-href="'/web/content/%s?download=true' % prod.drawing_sent_attachment.id" target="_blank" class="ms-2" title="Download Attachment">
+                                                <i class="fa fa-download fa-lg text-primary"/>
+                                                <t t-esc="prod.drawing_sent_attachment.name"/>
+                                            </a>
+
+                                        </t>
+                                    </div>
+
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" t-att-checked="prod.rev_1 and 'checked'" t-att-readonly="prod.rev_1 and 'readonly'" t-att-disabled="True"/>
+                                        <label class="form-check-label" for="Rev_1">Rev 1</label>
+                                        <t t-if="prod.rev_1_attachment">
+                                            <a t-att-href="'/web/content/%s?download=true' % prod.rev_1_attachment.id" target="_blank" class="ms-2" title="Download Attachment">
+                                                <i class="fa fa-download fa-lg text-primary"/>
+                                                <t t-esc="prod.rev_1_attachment.name"/>
+                                            </a>
+                                        </t>
+                                        <div >
+                                            <input type="date" class="form-control mt-2" name="rev_1_date" t-att-value="prod.rev_1_date or ''" t-att-disabled="True"/>
+                                        </div>
+                                    </div>
+
+                                    <!-- Repeat for Rev 2–5 -->
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" t-att-checked="prod.rev_2 and 'checked'" t-att-readonly="prod.rev_2 and 'readonly'" t-att-disabled="True"/>
+                                        <label class="form-check-label" for="Rev_2">Rev 2</label>
+                                        <t t-if="prod.rev_2_attachment">
+                                            <a t-att-href="'/web/content/%s?download=true' % prod.rev_2_attachment.id" target="_blank" class="ms-2" title="Download Attachment">
+                                                <i class="fa fa-download fa-lg text-primary"/>
+                                                <t t-esc="prod.rev_2_attachment.name"/>
+                                            </a>
+                                        </t>
+                                        <div >
+                                            <input type="date" class="form-control mt-2" name="rev_2_date" t-att-value="prod.rev_2_date or ''" t-att-disabled="True"/>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" t-att-checked="prod.rev_3 and 'checked'" t-att-readonly="prod.rev_3 and 'readonly'" t-att-disabled="True"/>
+                                        <label class="form-check-label" for="Rev_3">Rev 3</label>
+                                        <t t-if="prod.rev_3_attachment">
+                                            <a t-att-href="'/web/content/%s?download=true' % prod.rev_3_attachment.id" target="_blank" class="ms-2" title="Download Attachment">
+                                                <i class="fa fa-download fa-lg text-primary"/>
+                                                <t t-esc="prod.rev_3_attachment.name"/>
+                                            </a>
+                                        </t>
+                                        <div >
+                                            <input type="date" class="form-control mt-2" name="rev_3_date" t-att-value="prod.rev_3_date or ''" t-att-disabled="True"/>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" t-att-checked="prod.rev_4 and 'checked'" t-att-readonly="prod.rev_4 and 'readonly'" t-att-disabled="True"/>
+                                        <label class="form-check-label" for="Rev_4">Rev 4</label>
+                                        <t t-if="prod.rev_4_attachment">
+                                            <a t-att-href="'/web/content/%s?download=true' % prod.rev_4_attachment.id" target="_blank" class="ms-2" title="Download Attachment">
+                                                <i class="fa fa-download fa-lg text-primary"/>
+                                                <t t-esc="prod.rev_4_attachment.name"/>
+                                            </a>
+                                        </t>
+                                        <div >
+                                            <input type="date" class="form-control mt-2" name="rev_4_date" t-att-value="prod.rev_4_date or ''" t-att-disabled="True"/>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" t-att-checked="prod.rev_5 and 'checked'" t-att-readonly="prod.rev_5 and 'readonly'" t-att-disabled="True"/>
+                                        <label class="form-check-label" for="Rev_5">Rev 5</label>
+                                        <t t-if="prod.rev_5_attachment">
+                                            <a t-att-href="'/web/content/%s?download=true' % prod.rev_5_attachment.id" target="_blank" class="ms-2" title="Download Attachment">
+                                                <i class="fa fa-download fa-lg text-primary"/>
+                                                <t t-esc="prod.rev_5_attachment.name"/>
+                                            </a>
+                                        </t>
+                                        <div >
+                                            <input type="date" class="form-control mt-2" name="rev_5_date" t-att-value="prod.rev_5_date or ''" t-att-disabled="True"/>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group mt-3">
+                                        <label for="stage2_attachment">Upload Diagram (Choose revision):</label>
+                                        <div class="d-flex gap-2 align-items-center">
+                                            <select id="stage2_upload_tag" class="form-select w-25" t-att-disabled="True">
+                                                <option value="drawing_sent">Drawing Sent</option>
+                                                <option value="rev_1">Rev 1</option>
+                                                <option value="rev_2">Rev 2</option>
+                                                <option value="rev_3">Rev 3</option>
+                                                <option value="rev_4">Rev 4</option>
+                                                <option value="rev_5">Rev 5</option>
+                                            </select>
+                                            <input type="file" id="stage2_attachment" class="form-control w-50" t-att-disabled="True"/>
+                                        </div>
+                                    </div>
+
+
+
+
+                                </form>
+                            </div>
+
+
+
+                            <div class="modal-footer">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="stage2" t-att-checked="prod.stage2 and 'checked'" t-att-disabled="True" />
+                                    <label class="form-check-label" for="stage2">
+                            Stage 2 Completed
+                                    </label>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ========= prod stage 6 ============ -->
+
+                <div class="modal fade" id="Pstage6Modal" tabindex="-1" aria-labelledby="stage6ModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+
+                            <div class="modal-header d-flex justify-content-between align-items-center">
+                                <!-- Left: Title -->
+                                <h5 class="modal-title mb-0" id="Pstage6ModalLabel">Stage 6</h5>
+
+
+
+
+
+                                <!-- Right: Close Button -->
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"/>
+                            </div>
+
+
+                            <!-- Modal Body -->
+                            <!-- Modal Body -->
+                            <div class="modal-body">
+                                <form id="Pstage6Form">
+                                    <div class="border p-3 mb-3 rounded">
+                                        <div class="form-check mb-2">
+                                            <input type="checkbox" class="form-check-input" name="material_dispatch" id="material_dispatch" t-att-checked="prod.material_dispatch and 'checked'" t-att-disabled="True"/>
+                                            <label class="form-check-label fw-bold" for="material_dispatch">Material Dispatch</label>
+                                        </div>
+                                        <div class="mb-2">
+                                            <label>Date:</label>
+                                            <input type="date" class="form-control" name="material_dispatch_date" id="material_dispatch_date" t-att-value="prod.material_dispatch_date or ''" t-att-disabled="True"/>
+                                        </div>
+
+                                        <div class="form-group mt-3">
+                                            <label>Upload eBill:</label>
+                                            <t t-if="prod.material_dispatch_attachment">
+                                                <a t-att-href="'/web/content/%s?download=true' % prod.material_dispatch_attachment.id" target="_blank" class="ms-2" title="Download Attachment">
+                                                    <i class="fa fa-download fa-lg text-primary"/>
+                                                    <t t-esc="prod.material_dispatch_attachment.name"/>
+                                                </a>
+                                            </t>
+                                            <input type="file" id="stage6_attachment" name="stage6_attachment" class="form-control" t-att-disabled="True"/>
+                                        </div>
+                                        <!-- <input type="hidden" id="client_id" t-att-value="client.id"/> -->
+                                        <div class="mt-3">
+                                        </div>
+                                    </div>
+
+                                    <!-- Material Delivery -->
+                                    <div class="border p-3 mb-3 rounded">
+                                        <div class="form-check mb-2">
+                                            <input type="checkbox" class="form-check-input" name="material_delivery" id="material_delivery" t-att-checked="prod.material_delivery and 'checked'" t-att-disabled="True"/>
+                                            <label class="form-check-label fw-bold" for="material_delivery">Material Delivery</label>
+                                        </div>
+                                        <div class="mb-2">
+                                            <label>Date:</label>
+                                            <input type="date" class="form-control" name="material_delivery_date" id="material_delivery_date" t-att-value="prod.material_delivery_date or ''" t-att-disabled="True"/>
+                                        </div>
+                                    </div>
+
+
+                                </form>
+                            </div>
+
+
+
+                            <div class="modal-footer">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="stage6" t-att-checked="prod.stage6 and 'checked'" t-att-disabled="True" />
+                                    <label class="form-check-label" for="stage6">
+                            Stage 6 Completed
+                                    </label>
+                                </div>
+
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ========= prod stage 7 ========= -->
+
+                <div class="modal fade" id="Pstage7Modal" tabindex="-1" aria-labelledby="stage7ModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+
+                            <div class="modal-header d-flex justify-content-between align-items-center">
+                                <!-- Left: Title -->
+                                <h5 class="modal-title mb-0" id="Pstage7ModalLabel">Stage 7</h5>
+
+
+
+
+
+                                <!-- Right: Close Button -->
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"/>
+                            </div>
+
+
+                            <!-- Modal Body -->
+                            <!-- Modal Body -->
+                            <div class="modal-body">
+                                <form id="Pstage7Form">
+
+                                    <!-- Start Installation (Selection yes/no) -->
+                                    <div class="mb-3">
+                                        <label for="startInstallation" class="form-label">Start Installation</label>
+                                        <select class="form-select" id="startInstallation" name="start_installation" t-att-disabled="True">
+                                            <option value="" t-att-selected="not prod.start_installation">-- Select --</option>
+                                            <option value="yes" t-att-selected="prod.start_installation == 'yes'">Yes</option>
+                                            <option value="no" t-att-selected="prod.start_installation == 'no'">No</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Stage 7 Attachment -->
+                                    <div class="mb-3">
+                                        <label for="stage7Attachment" class="form-label">Upload Attachment</label>
+                                        <input class="form-control" type="file" id="stage7Attachment" name="stage7_attachment" accept="image/*,application/pdf" t-att-disabled="True"/>
+                                        <t t-if="prod.stage_7_attachment">
+                                            <div class="mt-2">
+                                                <a t-att-href="'/web/content/%s?download=true' % prod.stage_7_attachment.id" target="_blank" class="btn btn-outline-primary btn-sm">
+                                                    <i class="fa fa-download"></i>
+                                                    <t t-esc="prod.stage_7_attachment.name"/>
+                                                </a>
+                                            </div>
+                                        </t>
+                                    </div>
+
+                                </form>
+                            </div>
+
+
+
+                            <div class="modal-footer">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="stage7" t-att-checked="prod.stage7 and 'checked'" t-att-disabled="True" />
+                                    <label class="form-check-label" for="stage7">
+                            Stage 7 Completed
+                                    </label>
+                                </div>
+
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ========= prod stage 8 ========= -->
+
+                <div class="modal fade" id="Pstage8Modal" tabindex="-1" aria-labelledby="stage8ModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+
+                            <div class="modal-header d-flex justify-content-between align-items-center">
+                                <!-- Left: Title -->
+                                <h5 class="modal-title mb-0" id="Pstage8ModalLabel">Stage 8</h5>
+
+
+
+
+
+                                <!-- Right: Close Button -->
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"/>
+                            </div>
+
+
+                            <!-- Modal Body -->
+                            <!-- Modal Body -->
+                            <div class="modal-body">
+                                <form id="Pstage8Form">
+                                    <div class="form-check mb-2">
+                                        <input type="checkbox" class="form-check-input" name="ongoing" id="ongoing" t-att-checked="'checked' if prod.ongoing else None" t-att-disabled="True"/>
+                                        <label class="form-check-label fw-bold" for="ongoing">Ongoing</label>
+                                    </div>
+
+                                    <div class="form-check mb-2">
+                                        <input type="checkbox" class="form-check-input" name="completed" id="completed" t-att-checked="'checked' if prod.completed else None" t-att-disabled="True"/>
+                                        <label class="form-check-label fw-bold" for="completed">Completed</label>
+                                    </div>
+
+                                    <div class="border p-3 mb-3 rounded">
+                                        <div class="form-check mb-2">
+                                            <input type="checkbox" class="form-check-input" name="handover" id="handover" t-att-checked="'checked' if prod.handover else None" t-att-disabled="True"/>
+                                            <label class="form-check-label fw-bold" for="handover">Handover</label>
+                                            <input type="date" class="form-control mt-2" name="handover_date" id="handover_date" t-att-value="prod.handover_date or ''" t-att-readonly="'readonly' if prod.stage8 else None" t-att-disabled="True"/>
+                                        </div>
+
+                                        <div class="form-group mt-3">
+                                            <label>Attachment</label>
+                                            <t t-if="prod.attachment_handover">
+                                                <a t-att-href="'/web/content/%s?download=true' % prod.attachment_handover.id" target="_blank" class="ms-2" title="Download Attachment">
+                                                    <i class="fa fa-download fa-lg text-primary"></i>
+                                                    <t t-esc="prod.attachment_handover.name"/>
+                                                </a>
+                                            </t>
+                                            <input type="file" id="stage8_attachment" name="stage8_attachment" class="form-control" t-att-disabled="True"/>
+                                        </div>
+
+                                        <!-- <input type="hidden" id="client_id" t-att-value="client.id"/> -->
+                                        <div class="mt-3">
+                                        </div>
+                                    </div>
+
+                                    <div class="border p-3 mb-3 rounded">
+                                        <div class="form-check mb-2">
+                                            <input type="checkbox" class="form-check-input" name="installation_schedule" id="installation_schedule" t-att-checked="'checked' if prod.installation_schedule else None" t-att-disabled="True"/>
+                                            <label class="form-check-label fw-bold" for="handover">Installation Schedule</label>
+                                            <input type="date" class="form-control mt-2" name="installation_schedule_date" id="installation_schedule_date" t-att-value="prod.installation_schedule_date or ''" t-att-readonly="'readonly' if prod.stage8 else None" t-att-disabled="True"/>
+                                        </div>
+
+                                        <div class="form-group mt-3">
+                                            <label>Attachment</label>
+                                            <t t-if="prod.installation_schedule_attachment">
+                                                <a t-att-href="'/web/content/%s?download=true' % prod.installation_schedule_attachment.id" target="_blank" class="ms-2" title="Download Attachment">
+                                                    <i class="fa fa-download fa-lg text-primary"></i>
+                                                    <t t-esc="prod.installation_schedule_attachment.name"/>
+                                                </a>
+                                            </t>
+                                            <input type="file" id="stage82_attachment" name="stage82_attachment" class="form-control" t-att-disabled="True"/>
+                                        </div>
+
+                                        <!-- <input type="hidden" id="client_id" t-att-value="client.id"/> -->
+                                        <div class="mt-3">
+                                        </div>
+                                        <div class="form-group mt-3">
+                                            <label for="installation_schedule_remark" class="fw-bold">Remark</label>
+                                            <textarea class="form-control" id="installation_schedule_remark" name="installation_schedule_remark" rows="3" placeholder="Enter remark here..." t-att-readonly="'readonly' if prod.stage8 else None" t-att-disabled="'disabled' if prod.stage8 else None">
+                                                <t t-esc="prod.installation_schedule_remark or ''"/>
+                                            </textarea>
+                                        </div>
+
+                                    </div>
+
+                                    <div class="border p-3 mb-3 rounded">
+                                        <div class="form-check mb-2">
+                                            <!-- <label class="form-check-label fw-bold" for="handover">Glass Schedule</label> -->
+                                            <input type="checkbox" class="form-check-input" name="glass_schedule" id="glass_schedule" t-att-checked="'checked' if prod.glass_schedule else None" t-att-disabled="True"/>
+                                            <label class="form-check-label fw-bold" for="handover">Glass Schedule</label>
+
+                                        </div>
+                                        <div class="form-group mt-3">
+                                            <label class="form-check-label fw-bold" for="handover">Order Date</label>
+                                            <br/>
+                                            <input type="date" class="form-control mt-2" name="glass_schedule_date" id="glass_schedule_date" t-att-value="prod.glass_schedule_date or ''" t-att-readonly="'readonly' if prod.stage8 else None" t-att-disabled="True"/>
+                                        </div>
+
+                                        <div class="form-group mt-3">
+                                            <label>delivery date</label>
+                                            <t t-if="prod.glass_schedule_attachment">
+                                                <a t-att-href="'/web/content/%s?download=true' % prod.glass_schedule_attachment.id" target="_blank" class="ms-2" title="Download Attachment">
+                                                    <i class="fa fa-download fa-lg text-primary"></i>
+                                                    <t t-esc="prod.glass_schedule_attachment.name"/>
+                                                </a>
+                                            </t>
+                                            <input type="file" id="stage82_attachment" name="stage82_attachment" class="form-control" t-att-disabled="True"/>
+                                        </div>
+
+                                        <!-- <input type="hidden" id="client_id" t-att-value="client.id"/> -->
+                                        <div class="mt-3">
+                                        </div>
+                                        <div class="form-group mt-3">
+                                            <label for="glass_schedule_remark" class="fw-bold">Remark</label>
+                                            <textarea class="form-control" id="glass_schedule_remark" name="glass_schedule_remark" rows="3" placeholder="Enter remark here..." t-att-readonly="'readonly' if prod.stage8 else None" t-att-disabled="'disabled' if prod.stage8 else None">
+                                                <t t-esc="prod.glass_schedule_remark or ''"/>
+                                            </textarea>
+                                        </div>
+
+                                    </div>
+
+
+                                </form>
+                            </div>
+
+
+
+                            <div class="modal-footer">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="stage8" t-att-checked="prod.stage8 and 'checked'" t-att-disabled="True" />
+                                    <label class="form-check-label" for="stage8">
+                            Stage 8 Completed
+                                    </label>
+                                </div>
+                                <!-- <t t-if="not client.stage8"> -->
+                                <!-- </t> -->
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            </div>
+            <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+            <script>
+            var stage9FormChanged = false;
+            var stage8FormChanged = false;
+            var stage7FormChanged = false;
+            var stage6FormChanged = false;
+            var stage5FormChanged = false;
+            var stage4FormChanged = false;
+            var stage2FormChanged = false;
+            var stage1FormChanged = false;
+            $(document).ready(function () {
+
+                $("#stage9Modal").on("change", "input:not(#stage9), select, textarea", function () {
+                    stage9FormChanged = true;
+                    console.log("Stage 9 modal changed!"); 
+                });
+                $("#stage8Modal").on("change", "input:not(#stage8), select, textarea", function () {
+                    stage8FormChanged = true;
+                    console.log("Stage 8 modal changed!"); 
+                });
+                $("#stage7Modal").on("change", "input:not(#stage7), select, textarea", function () {
+                    stage7FormChanged = true;
+                    console.log("Stage 7 modal changed!"); 
+                });
+                $("#stage6Modal").on("change", "input:not(#stage6), select, textarea", function () {
+                    stage6FormChanged = true;
+                    console.log("Stage 6 modal changed!"); 
+                });
+                $("#stage5Modal").on("change", "input:not(#stage5), select, textarea", function () {
+                    stage5FormChanged = true;
+                    console.log("Stage 5 modal changed!"); 
+                });
+                $("#stage3Modal").on("change", "input:not(#stage4), select, textarea", function () {
+                    stage4FormChanged = true;
+                    console.log("Stage 4 modal changed!"); 
+                });
+                $("#stage2Modal").on("change", "input:not(#stage2), select, textarea", function () {
+                    stage2FormChanged = true;
+                    console.log("Stage 2 modal changed!"); 
+                });
+                $("#stage1Modal").on("change", "input:not(#stage1), select, textarea", function () {
+                    stage1FormChanged = true;
+                    console.log("Stage 1 modal changed!"); 
+                });
+            });
+
+
+            document.addEventListener("DOMContentLoaded", function () {
+                                                <!-- const hiddenInput = document.getElementById("site_visit_done_hidden"); -->
+                const toggleCheckbox = document.getElementById("toggle_site_visit_checkbox");
+                const redinessToggle = document.getElementById("toggle_rediness_checkbox");
+                const redinessCheckbox = document.getElementById("redinessform");
+
+                syncCheckboxToHidden('drawing_sent', 'drawing_sentt');
+                syncCheckboxToHidden('Rev_1', 'rev1');
+                syncCheckboxToHidden('Rev_2', 'rev2');
+                syncCheckboxToHidden('Rev_3', 'rev3');
+                syncCheckboxToHidden('Rev_4', 'rev4');
+                syncCheckboxToHidden('Rev_5', 'rev5');
+                syncCheckboxToHidden('redinessform', 'redinessform_hidden');
+                syncCheckboxToHidden('site_visit', 'site_visit_hidden');
+                syncCheckboxToHidden('site_visit_done', 'site_visit_done_hidden');
+                syncCheckboxToHidden('finishes_form', 'finishes_form_hidden');
+                syncCheckboxToHidden('stage1', 'stage1_hidden');
+                syncCheckboxToHidden('stage2', 'stage2_hidden');
+                syncCheckboxToHidden('stage3', 'stage3_hidden');
+                syncCheckboxToHidden('stage4', 'stage4_hidden');
+                syncCheckboxToHidden('stage5', 'stage5_hidden');
+                syncCheckboxToHidden('stage6', 'stage6_hidden');
+                syncCheckboxToHidden('stage7', 'stage7_hidden');
+                syncCheckboxToHidden('stage8', 'stage8_hidden');
+                syncCheckboxToHidden('stage9', 'stage9_hidden');
+                syncCheckboxToHidden('material_dispatch', 'material_dispatch_hidden');
+                syncCheckboxToHidden('material_delivery', 'material_delivery_hidden');
+                syncCheckboxToHidden('readiness_notification', 'readiness_notification_hidden');
+                syncCheckboxToHidden('advance_paid_checkbox', 'advance_paid_checkbox_hidden');
+                syncCheckboxToHidden('readiness_collected_checkbox', 'readiness_collected_checkbox_hidden');
+                syncCheckboxToHidden('handover_checkbox', 'handover_checkbox_hidden');
+                syncCheckboxToHidden('balance_checkbox', 'balance_checkbox_hidden');
+                syncCheckboxToHidden('ongoing', 'ongoing_hidden');
+                syncCheckboxToHidden('completed', 'completed_hidden');
+                syncCheckboxToHidden('handover', 'handover_hidden');
+                syncCheckboxToHidden('amc', 'amc_hidden');
+                syncCheckboxToHidden('service', 'service_hidden');
+                syncCheckboxToHidden('renew', 'renew_hidden');
+                syncCheckboxToHidden('not_renew', 'not_renew_hidden');
+
+                
+                
+
+
+                
+
+                
+                
+
+                if (redinessToggle &amp;&amp; redinessCheckbox) {
+                    redinessToggle.addEventListener("change", function () {
+                        redinessCheckbox.disabled = !this.checked;
+                    });
+                }
+
+
+                const form = document.querySelector("form");
+                                <!-- ========================== for stage 8 AMC radio block ======================= -->
+
+                const amcRadio = document.getElementById("amc");
+                const serviceRadio = document.getElementById("service");
+                const renewBlock = document.getElementById("renew_block");
+                const renewRadio = document.getElementById("renew");
+                const notRenewRadio = document.getElementById("not_renew");
+                const renewDateBlock = document.getElementById("renew_date_block");
+                const siteVisit = document.getElementById("site_visit");
+                const siteVisitDoneWrapper = document.getElementById("sitevisitdonee");
+                const rev11 = document.getElementById("Rev_1");
+                const rev12 = document.getElementById("Rev_2");
+                const rev13 = document.getElementById("Rev_3");
+                const rev14 = document.getElementById("Rev_4");
+                const rev15 = document.getElementById("Rev_5");
+            
+                function updateUI() {
+                    if (siteVisit.checked) {
+                        siteVisitDoneWrapper.style.display = "block"; // Show the checkbox
+                    } else {
+                        siteVisitDoneWrapper.style.display = "none";  // Hide the checkbox
+                        document.getElementById("site_visit_done").checked = false; // Reset if hidden
+                    }
+
+                    if (amcRadio.checked) {
+                        service = false;
+                    }
+                    if (serviceRadio.checked) {
+                        amc = false;
+                    }
+                    if (amcRadio.checked) {
+                        renewBlock.style.display = "block";
+            
+                        if (renewRadio.checked) {
+                            renewDateBlock.style.display = "block";
+                        } else {
+                            renewDateBlock.style.display = "none";
+                        }
+            
+                    } else {
+                        renewBlock.style.display = "none";
+                        renewDateBlock.style.display = "none"; 
+                    }
+                    if (rev11.checked) {
+                        rev_1_date_block.style.display = "block"; // Show the checkbox
+                    } else {
+                        rev_1_date_block.style.display = "none";  // Hide the checkbox
+                        document.getElementById("rev_1_date").value = false; // Reset if hidden
+                    }
+                    if (rev12.checked) {
+                        rev_2_date_block.style.display = "block"; // Show the checkbox
+                    } else {
+                        rev_2_date_block.style.display = "none";  // Hide the checkbox
+                        document.getElementById("rev_2_date").value = false; // Reset if hidden
+                    }
+                    if (rev13.checked) {
+                        rev_3_date_block.style.display = "block"; // Show the checkbox
+                    } else {
+                        rev_3_date_block.style.display = "none";  // Hide the checkbox
+                        document.getElementById("rev_3_date").value = false; // Reset if hidden
+                    }
+                    if (rev14.checked) {
+                        rev_4_date_block.style.display = "block"; // Show the checkbox
+                    } else {
+                        rev_4_date_block.style.display = "none";  // Hide the checkbox
+                        document.getElementById("rev_4_date").value = false; // Reset if hidden
+                    }
+                    if (rev15.checked) {
+                        rev_5_date_block.style.display = "block"; // Show the checkbox
+                    } else {
+                        rev_5_date_block.style.display = "none";  // Hide the checkbox
+                        document.getElementById("rev_5_date").value = false; // Reset if hidden
+                    }
+
+                    syncCheckboxToHidden('amc', 'amc_hidden');
+                    syncCheckboxToHidden('service', 'service_hidden');
+                    syncCheckboxToHidden('renew', 'renew_hidden');
+                    syncCheckboxToHidden('not_renew', 'not_renew_hidden');
+                    syncCheckboxToHidden('Rev_1', 'rev1');
+                    syncCheckboxToHidden('Rev_2', 'rev2');
+                    syncCheckboxToHidden('Rev_3', 'rev3');
+                    syncCheckboxToHidden('Rev_4', 'rev4');
+                    syncCheckboxToHidden('Rev_5', 'rev5');
+                }
+            
+                updateUI();
+            
+                [amcRadio, serviceRadio, renewRadio, notRenewRadio,siteVisit,rev11,rev12,rev13,rev14,rev15].forEach(el =&gt; {
+                    el.addEventListener("change", updateUI);
+                });
+
+
+                
+
+                                <!-- =============================================================== -->
+                form.addEventListener("submit", function () {
+                    document.getElementById("rev_1_date_hidden").value = document.getElementById("rev_1_date").value;
+                    document.getElementById("rev_2_date_hidden").value = document.getElementById("rev_2_date").value;
+                    document.getElementById("rev_3_date_hidden").value = document.getElementById("rev_3_date").value;
+                    document.getElementById("rev_4_date_hidden").value = document.getElementById("rev_4_date").value;
+                    document.getElementById("rev_5_date_hidden").value = document.getElementById("rev_5_date").value;
+                    document.getElementById("material_dispatch_date_hidden").value = document.getElementById("material_dispatch_date").value;
+                    document.getElementById("material_delivery_date_hidden").value = document.getElementById("material_delivery_date").value;
+                    document.getElementById("advance_paid_percentage_hidden").value = document.getElementById("advance_paid_percentage").value;
+                    document.getElementById("advance_paid_amount_hidden").value = document.getElementById("advance_paid_amount").value;
+                    document.getElementById("readiness_collected_percentage_hidden").value = document.getElementById("readiness_collected_percentage").value;
+                    document.getElementById("handover_percentage_hidden").value = document.getElementById("handover_percentage").value;
+                    document.getElementById("balance_percentage_hidden").value = document.getElementById("balance_percentage").value;
+                    document.getElementById("readiness_collected_amount_hidden").value = document.getElementById("readiness_collected_amount").value;
+                    document.getElementById("handover_amount_hidden").value = document.getElementById("handover_amount").value;
+                    document.getElementById("balance_amount_hidden").value = document.getElementById("balance_amount").value;
+                    document.getElementById("start_installation_hidden").value = document.getElementById("start_installation").value;
+                    document.getElementById("handover_date_hidden").value = document.getElementById("handover_date").value;
+                    document.getElementById("amc_start_date_hidden").value = document.getElementById("amc_start_date").value;
+                    document.getElementById("amc_end_date_hidden").value = document.getElementById("amc_end_date").value;
+                    document.getElementById("renew_date_hidden").value = document.getElementById("renew_date").value;
+                });
+
+                document.getElementById('editStage5Btn').addEventListener('click', function () {
+                    let password = prompt("Enter Admin Password to Edit:");
+
+                    if (!password) {
+                        alert("Password required.");
+                        return;
+                    }
+
+                    $.ajax({
+                        url: "/crm/client/check_admin_password",
+                        type: "POST",
+                        data: { password: password },
+
+                                                        <!-- success: function (response) { -->
+                            success: function (response) {
+                                let data = typeof response === 'string' ? JSON.parse(response) : response;
+                                if (data.valid) {
+                                    $("#stage5Modal input, #stage5Modal select, #stage5Modal textarea,#stage5Modal button ").each(function () {
+                                    if (this.id !== "stage5") {
+                                        this.removeAttribute("disabled");
+                                    }
+                                    $("#stage5Modal button").each(function () {
+                                        this.removeAttribute("disabled");
+                                    });
+                                });
+                                    alert("Unlocked! You can now edit Stage 5.");
+                                } else {
+                                    alert("Incorrect password.");
+                                }
+                                                            <!-- }
+                            if (response.valid) {
+                                // Unlock all inputs inside Stage 5 modal except stage5 checkbox
+                                $("#stage5Modal input, #stage5Modal select, #stage5Modal textarea").each(function () {
+                                    if (this.id !== "stage5") {
+                                        this.removeAttribute("disabled");
+                                    }
+                                });
+                                alert("Unlocked! You can now edit Stage 5.");
+                            } else {
+                                alert("Incorrect password. Permission denied.");
+                            } -->
+                        },
+                        error: function () {
+                            alert("Server error while checking password.");
+                        }
+                    });
+                });
+                
+                                                                                <!-- const checkbox = document.getElementById('drawing_sent');
+        if (checkbox) {
+            checkbox.addEventListener('change', toggleStage2Fields);
+            toggleStage2Fields(); 
+        } -->
+                
+            });
+
+            function syncCheckboxToHidden(checkboxId, hiddenId) {
+        const checkbox = document.getElementById(checkboxId);
+        const hidden = document.getElementById(hiddenId);
+
+        checkbox.addEventListener('change', () =&gt; {
+            hidden.value = checkbox.checked ? '1' : '0';
+        });
+
+
+        hidden.value = checkbox.checked ? '1' : '0';
+    }
+
+    function uploadStage3Attachment() {
+        const fileInput = document.getElementById('stage3_attachment');
+        const file = fileInput.files[0];
+        const clientId = document.getElementById('client_id').value;
+
+        if (!file) {
+            alert("Please select a file.");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('client_id', clientId);
+
+        fetch('/upload/stage3', {
+            method: 'POST',
+            body: formData,
+            credentials: 'include'
+        })
+        .then(response =&gt; response.json())
+        .then(data =&gt; {
+            if (data.success) {
+                alert("File uploaded successfully.");
+            } else {
+                alert("Upload failed.");
+            }
+        })
+        .catch(error =&gt; {
+            console.error('Error:', error);
+            alert("An error occurred during upload.");
+        });
+    }
+
+
+    function toggleStage2Fields() {
+        const isChecked = document.getElementById('drawing_sent').checked;
+
+        const fieldIds = [
+            'Rev_1', 'rev_1_date',
+            'Rev_2', 'rev_2_date',
+            'Rev_3', 'rev_3_date',
+            'Rev_4', 'rev_4_date',
+            'Rev_5', 'rev_5_date',
+            'stage2_attachment',
+            'uploadStage2Btn'
+        ];
+
+        fieldIds.forEach(id =&gt; {
+            const el = document.getElementById(id);
+            if (el) {
+                el.disabled = !isChecked;
+                el.style.display = '';
+                el.classList.remove('d-none', 'invisible');
+            }
+        });
+    }
+
+    fieldIds.forEach(id =&gt; {
+    const el = document.getElementById(id);
+    if (el &amp;&amp; !el.hasAttribute('disabled')) {
+        el.disabled = !isChecked;
+    }
+});
+
+function uploadStage2Attachment() {
+    const fileInput = document.getElementById('stage2_attachment');
+    const tagInput = document.getElementById('stage2_upload_tag');
+    const file = fileInput.files[0];
+    const tag = tagInput.value;
+    const clientId = document.getElementById('client_id_stage2').value;
+    const clientName = document.getElementById('client_name').value.trim().replace(/\s+/g, "_");
+
+    if (!file) {
+        alert("Please select a file.");
+        return;
+    }
+    
+    const mapping = {
+        'drawing_sent': { checkboxId: 'drawing_sent', dateId: null },
+        'rev_1': { checkboxId: 'Rev_1', dateId: 'rev_1_date' },
+        'rev_2': { checkboxId: 'Rev_2', dateId: 'rev_2_date' },
+        'rev_3': { checkboxId: 'Rev_3', dateId: 'rev_3_date' },
+        'rev_4': { checkboxId: 'Rev_4', dateId: 'rev_4_date' },
+        'rev_5': { checkboxId: 'Rev_5', dateId: 'rev_5_date' }
+    };
+
+    const { checkboxId, dateId } = mapping[tag] || {};
+
+    if (checkboxId) {
+        const checkbox = document.getElementById(checkboxId);
+        if (!checkbox || !checkbox.checked) {
+            alert(`Please tick '${tag.replace('_', ' ').toUpperCase()}' before uploading its attachment.`);
+                            <!-- window.location.reload(); -->
+            return;
+        }
+    }
+
+    if (dateId) {
+        const dateInput = document.getElementById(dateId);
+        if (!dateInput || !dateInput.value) {
+            alert(`Please fill the date for '${tag.replace('_', ' ').toUpperCase()}' before uploading its attachment.`);
+                            <!-- window.location.reload(); -->
+            return;
+        }
+    }
+
+    const extension = file.name.split('.').pop();
+    const renamedFile = new File([file], `${clientName}_${tag}.${extension}`, { type: file.type });
+
+    const formData = new FormData();
+                                    <!-- formData.append('file', renamedFile); -->
+    formData.append('file', file);
+    formData.append('client_id', clientId);
+    formData.append('tag', tag);
+    if (dateId) {
+        const dateInput = document.getElementById(dateId);
+        formData.append("dateInput", dateInput.value);
+    }
+    
+    
+
+    fetch('/upload/stage2', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+    })
+    .then(response =&gt; response.json())
+    .then(data =&gt; {
+        if (data.success) {
+            alert("File uploaded successfully.");
+            window.location.reload();
+            loadStage2Files(clientId);
+            
+            fileInput.value = "";
+        } else {
+            alert("Upload failed: " + (data.error || "Unknown error"));
+                                            <!-- window.location.reload(); -->
+        }
+    })
+    .catch(error =&gt; {
+        console.error('Error:', error);
+                                                                        <!-- alert("An error occurred during upload."); -->
+    });
+}
+
+function validationstage2() {
+    let drawingSent = document.getElementById('drawing_sent').checked;
+    let rev1 = document.getElementById('Rev_1').checked;
+    let rev2 = document.getElementById('Rev_2').checked;
+    let rev3 = document.getElementById('Rev_3').checked;
+    let rev4 = document.getElementById('Rev_4').checked;
+    let rev5 = document.getElementById('Rev_5').checked;
+    const clientId = document.getElementById('client_id_stage2').value;
+
+    let drawingAttachment = document.getElementById('drawing_sent_attachment');
+    let rev1Attachment = document.getElementById('rev_1_attachment');
+    let rev1Date = document.getElementById('rev_1_date').value;
+    let rev2Attachment = document.getElementById('rev_2_attachment');
+    let rev2Date = document.getElementById('rev_2_date').value;
+    let rev3Attachment = document.getElementById('rev_3_attachment');
+    let rev3Date = document.getElementById('rev_3_date').value;
+    let rev4Attachment = document.getElementById('rev_4_attachment');
+    let rev4Date = document.getElementById('rev_4_date').value;
+    let rev5Attachment = document.getElementById('rev_5_attachment');
+    let rev5Date = document.getElementById('rev_5_date').value;
+    let stage2 = document.getElementById('stage2').checked;
+    const formData = new FormData();
+    formData.append('client_id', clientId);
+    formData.append('stage2', stage2);
+
+    if (!drawingSent ) {
+        alert("please check Drawing sent")
+                        <!-- window.location.reload(); -->
+    }
+
+    if (rev1 &amp;&amp; (!drawingSent  || !rev1Date)) {
+        alert("Rev 1 requires Previous files to be marked, uploaded, and Rev 1 attachment &amp; date filled.");
+                        <!-- window.location.reload(); -->
+        return false;
+    }
+
+    if (rev2 &amp;&amp; (!rev1  || !rev2Date)) {
+        alert("Rev 2 requires Previous files to be marked, uploaded, and Rev 2 attachment &amp; date filled.");
+                        <!-- window.location.reload(); -->
+        return false;
+    }
+
+    if (rev3 &amp;&amp; (!rev2  || !rev3Date)) {
+        alert("Rev 3 requires Previous files to be marked, uploaded, and Rev 3 attachment &amp; date filled.");
+                        <!-- window.location.reload(); -->
+        return false;
+    }
+
+    if (rev4 &amp;&amp; (!rev3  || !rev4Date)) {
+        alert("Rev 4 requires Previous files to be marked, and Rev 4 attachment &amp; date filled.");
+                        <!-- window.location.reload(); -->
+        return false;
+    }
+
+    if (rev5 &amp;&amp; (!rev4  || !rev5Date)) {
+        alert("Rev 5 requires Previous files to be marked, uploaded, and Rev 5 attachment &amp; date filled.");
+                        <!-- window.location.reload(); -->
+        return false;
+    }
+    if(stage2 &amp;&amp; stage2FormChanged){
+        alert("Please save the changes with follow description before marking it completed.")
+                        <!-- window.location.reload(); -->
+    }
+
+    
+    
+
+    fetch('/upload/stage2', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+    })
+    .then(response =&gt; response.json())
+    .then(data =&gt; {
+        if (data.success) {
+            window.location.reload();
+        } else {
+            window.location.reload();
+        }
+    })
+    .catch(error =&gt; {
+        console.error('Error:', error);
+                                       
+    });
+
+    return true; 
+}
+
+
+
+
+                                    <!-- ================== stage 4 ========================-->
+
+function saveAttachments() {
+    
+    const clientId = document.querySelector('#stage4Modal').getAttribute('data-client-id');
+    const files = [
+        { name: 'cop_accent', element: document.getElementById('cop_accent') },
+        { name: 'cabin_interiors', element: document.getElementById('cabin_interiors') },
+        { name: 'doors', element: document.getElementById('doors') },
+        { name: 'ceiling', element: document.getElementById('ceiling') },
+        { name: 'cabin_rel_color', element: document.getElementById('cabin_rel_color') },
+        { name: 'flooring', element: document.getElementById('flooring') },
+        { name: 'glass_wall_1', element: document.getElementById('glass_wall_1') },
+        { name: 'glass_wall_2', element: document.getElementById('glass_wall_2') },
+        { name: 'outer_shaft_color', element: document.getElementById('outer_shaft_color') },
+        { name: 'others', element: document.getElementById('others') }
+    ];
+    const remarks = document.getElementById('remarks').value;
+    const finishesForm = document.getElementById('finishes_form').checked;
+    const stageComp = document.getElementById('stage3').checked;
+
+    const formData = new FormData();
+    formData.append('client_id', clientId);
+    formData.append('remarks', remarks);
+    formData.append('finishes_form', finishesForm);
+    formData.append('stage3',stageComp);
+
+    let fileUploaded = false;
+
+    files.forEach(file =&gt; {
+        if (file.element.files.length &gt; 0) {
+            formData.append(file.name, file.element.files[0]);
+            fileUploaded = true;
+        }
+    });
+
+    fetch('/web/save_stage_attachments', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Odoo-CSRF-TOKEN': odoo.csrf_token
+        }
+    })
+    .then(response =&gt; response.json())
+    .then(data =&gt; {
+        if (data.success) {
+            if (fileUploaded){
+                                                <!-- alert("File uploaded successfully."); -->
+            }            
+            document.getElementById('stage4Modal').style.display = 'none';
+            window.location.reload();
+        } else {
+            alert('Error saving attachments: ' + data.error);
+        }
+    })
+    .catch(error =&gt; {
+        console.error('Error:', error);
+        alert('An error occurred while saving attachments');
+    });
+}
+
+                                    <!-- =========================== stage 4================================ -->
+
+
+function deleteStage3Attachment(button) {
+    let client_id = button.getAttribute('data-client-id');
+
+    fetch('/delete/stage3', {
+        method: 'POST',
+        body: new URLSearchParams({ client_id: client_id })
+    })
+    .then(res =&gt; res.json())
+    .then(data =&gt; {
+        if (data.success) location.reload();
+        else alert(data.error);
+    });
+}
+                                    <!-- ================== stage 2 =============== -->
+
+function uploadRevisionFile(revId) {
+    let clientId = document.querySelector('#stage2Modal').getAttribute('data-client-id');
+    let fileInput = document.getElementById(revId + "_file");
+    let formData = new FormData();
+    formData.append("client_id", clientId);
+    formData.append("revision", revId);
+    formData.append("file", fileInput.files[0]);
+
+    fetch("/web/save_stage2_revision_file", {
+        method: "POST",
+        body: formData
+    })
+    .then(res =&gt; res.json())
+    .then(data =&gt; {
+        if (data.success) {
+            document.getElementById(revId + "_link").innerHTML =
+                `                <a href="${data.file_url}" target="_blank">${data.file_name}</a>`;
+        } else {
+            alert("Error: " + (data.error || "File upload failed"));
+        }
+    });
+}
+                                                                <!-- ================== for button hover ============ -->
+
+document.addEventListener("DOMContentLoaded", function () {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    })
+});
+
+                                                    <!-- ====================== stage 5 ======================== -->
+function uploadStage5Attachment1() {
+        const fileInput = document.getElementById('stage51_attachment');
+        const file = fileInput.files[0];
+        const clientId = document.getElementById('client_id').value;
+
+        if (!file) {
+            alert("Please select a file.");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('client_id', clientId);
+
+        fetch('/upload/stage51', {
+            method: 'POST',
+            body: formData,
+            credentials: 'include'
+        })
+        .then(response =&gt; response.json())
+        .then(data =&gt; {
+            if (data.success) {
+                alert("File uploaded successfully.");
+            } else {
+                alert("Upload failed.");
+            }
+        })
+        .catch(error =&gt; {
+            console.error('Error:', error);
+            alert("An error occurred during upload.");
+        });
+    }
+
+function uploadStage5Attachment2() {
+        const fileInput = document.getElementById('stage52_attachment');
+        const file = fileInput.files[0];
+        const clientId = document.getElementById('client_id').value;
+
+        if (!file) {
+            alert("Please select a file.");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('client_id', clientId);
+
+        fetch('/upload/stage52', {
+            method: 'POST',
+            body: formData,
+            credentials: 'include'
+        })
+        .then(response =&gt; response.json())
+        .then(data =&gt; {
+            if (data.success) {
+                alert("File uploaded successfully.");
+            } else {
+                alert("Upload failed.");
+            }
+        })
+        .catch(error =&gt; {
+            console.error('Error:', error);
+            alert("An error occurred during upload.");
+        });
+    }
+
+function uploadStage5Attachment3() {
+        const fileInput = document.getElementById('stage53_attachment');
+        const file = fileInput.files[0];
+        const clientId = document.getElementById('client_id').value;
+
+        if (!file) {
+            alert("Please select a file.");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('client_id', clientId);
+
+        fetch('/upload/stage53', {
+            method: 'POST',
+            body: formData,
+            credentials: 'include'
+        })
+        .then(response =&gt; response.json())
+        .then(data =&gt; {
+            if (data.success) {
+                alert("File uploaded successfully.");
+            } else {
+                alert("Upload failed.");
+            }
+        })
+        .catch(error =&gt; {
+            console.error('Error:', error);
+            alert("An error occurred during upload.");
+        });
+    }
+
+function uploadStage5Attachment4() {
+        const fileInput = document.getElementById('stage54_attachment');
+        const file = fileInput.files[0];
+        const clientId = document.getElementById('client_id').value;
+
+        if (!file) {
+            alert("Please select a file.");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('client_id', clientId);
+
+        fetch('/upload/stage54', {
+            method: 'POST',
+            body: formData,
+            credentials: 'include'
+        })
+        .then(response =&gt; response.json())
+        .then(data =&gt; {
+            if (data.success) {
+                alert("File uploaded successfully.");
+            } else {
+                alert("Upload failed.");
+            }
+        })
+        .catch(error =&gt; {
+            console.error('Error:', error);
+            alert("An error occurred during upload.");
+        });
+    }
+
+
+
+    
+                                <!-- ============================= stage 6 ============================= -->
+
+function uploadStage6Attachment() {
+        const fileInput = document.getElementById('stage6_attachment');
+        const file = fileInput.files[0];
+        const clientId = document.getElementById('client_id').value;
+
+        if (!file) {
+            alert("Please select a file.");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('client_id', clientId);
+
+        fetch('/upload/stage6', {
+            method: 'POST',
+            body: formData,
+            credentials: 'include'
+        })
+        .then(response =&gt; response.json())
+        .then(data =&gt; {
+            if (data.success) {
+                alert("File uploaded successfully.");
+            } else {
+                alert("Upload failed.");
+            }
+        })
+        .catch(error =&gt; {
+            console.error('Error:', error);
+            alert("An error occurred during upload.");
+        });
+    }
+                                    <!-- ======== stage 7 =========== -->
+
+    function uploadStage7Attachment() {
+        const amountInput = document.getElementById("start_installation");
+        const fileInput = document.getElementById('stage7_attachment');
+        const file = fileInput.files[0];
+        const clientId = document.getElementById('client_id').value;
+
+        if (!file) {
+            alert("Please select a file.");
+            return;
+        }
+        if (!amountInput.value) {
+            alert("Amount is required.");
+            amountInput.focus();
+            return;
+        }
+        
+
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('start_installation',amountInput.value)
+        formData.append('client_id', clientId);
+
+        fetch('/upload/stage7', {
+            method: 'POST',
+            body: formData,
+            credentials: 'include'
+        })
+        .then(response =&gt; response.json())
+        .then(data =&gt; {
+            if (data.success) {
+                alert("File uploaded successfully.");
+            } else {
+                alert("Upload failed.");
+            }
+        })
+        .catch(error =&gt; {
+            console.error('Error:', error);
+            alert("An error occurred during upload.");
+        });
+    }
+
+                                    <!-- ======== stage 8 =========== -->
+
+    function uploadStage8Attachment() {
+        const fileInput = document.getElementById('stage8_attachment');
+        const file = fileInput.files[0];
+        const clientId = document.getElementById('client_id').value;
+
+        if (!file) {
+            alert("Please select a file.");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('client_id', clientId);
+
+        fetch('/upload/stage8', {
+            method: 'POST',
+            body: formData,
+            credentials: 'include'
+        })
+        .then(response =&gt; response.json())
+        .then(data =&gt; {
+            if (data.success) {
+                alert("File uploaded successfully.");
+            } else {
+                alert("Upload failed.");
+            }
+        })
+        .catch(error =&gt; {
+            console.error('Error:', error);
+            alert("An error occurred during upload.");
+        });
+    }
+
+    
+    function validatestage8() {
+        debugger;
+        const amcCheckbox = document.getElementById("amc");
+        const startDateInput = document.getElementById("amc_start_date");
+        const endDateInput = document.getElementById("amc_end_date");
+        const handovercheck = document.getElementById("handover");
+        const handover_date = document.getElementById("handover_date");
+        const renew_date = document.getElementById("renew_date");
+        const service = document.getElementById("service");
+
+        if(amcCheckbox.checked){
+            if(service.checked){
+                alert("You cannot check both AMC and Service select either AMC or Service");
+                return false;
+            }
+        }
+        if (amcCheckbox.checked) {
+            const startDate = startDateInput.value;
+            const endDate = endDateInput.value;
+
+            if (!startDate) {
+                alert("AMC Start Date cannot be empty.");
+                startDateInput.focus();
+                return false;
+            }
+            if (new Date(startDate) &gt;= new Date(endDate)) {
+                alert("AMC Start Date must be before AMC End Date.");
+                startDateInput.focus();
+                return false;
+            }
+        }
+        if(startDateInput.value){
+            if(!amcCheckbox.checked){
+                alert("Please Check AMC");
+                return false;
+            }
+        }
+        if(endDateInput.value){
+            if(!startDateInput.value){
+                alert("Clear End date");
+                return false;
+            }
+        }
+        if (handovercheck.checked){
+            if(! handover_date){
+                alert("Fill Handover Date");
+                handover_date.focus();
+                return false;
+            }
+        }
+        if (renew_date.value) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);  // ignore time
+        const renewDate = new Date(renew_date.value);
+
+        if (renewDate &lt; today) {
+            alert("Renew Date cannot be earlier than today.");
+            renew_date.focus();
+            return false;
+        }
+
+        
+    }
+    const renewDate = new Date(renew_date.value);
+    const renew = document.getElementById("renew");
+    if(renew.checked){
+            if(!renew_date.value){
+                alert("Please fill renew date");
+                renew_date.focus();
+                return false;
+            }
+        }
+
+        var stage8Checked = $("#stage8").is(":checked");
+    var clientId = $("#client_id").val();
+
+ 
+    if (stage8Checked &amp;&amp; !stage8FormChanged) {
+        $.ajax({
+            url: "/update/stage8/proceed",
+            method: "POST",
+            data: {
+                client_id: clientId,
+                stage8: true
+            },
+            success: function (res) {
+                if (res.success) {
+                    alert("Stage 8 updated successfully!");
+                    location.reload();
+                } else {
+                    location.reload();
+                }
+            },
+            error: function () {
+                alert("Something went wrong while saving Stage 8.");
+            }
+        });
+    } else if(stage8FormChanged){
+        alert("Please save the changes with follow description before marking it completed.");
+    }
+        
+        
+        return true;
+        
+
+        
+    }
+                    <!-- ========================= stage 1 ============== -->
+    function uploadStage1Attachment() {
+        const fileInput = document.getElementById('stage1_attachment');
+        const file = fileInput.files[0];
+        const clientId = document.getElementById('client_id').value;
+
+        if (!file) {
+            alert("Please select a file.");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('client_id', clientId);
+
+        fetch('/upload/stage1', {
+            method: 'POST',
+            body: formData,
+            credentials: 'include'
+        })
+        .then(response =&gt; response.json())
+        .then(data =&gt; {
+            if (data.success) {
+                alert("File uploaded successfully.");
+            } else {
+                alert("Upload failed.");
+            }
+        })
+        .catch(error =&gt; {
+            console.error('Error:', error);
+            alert("An error occurred during upload.");
+        });
+    }
+
+
+                                    <!-- === stage 9 =========== -->
+
+    function validatestage9() {
+        const amcCheckbox = document.getElementById("amc");
+        const startDateInput = document.getElementById("amc_start_date");
+        const endDateInput = document.getElementById("amc_end_date");
+        const renew_date = document.getElementById("renew_date");
+        const service = document.getElementById("service");
+
+        if(amcCheckbox.checked){
+            if(service.checked){
+                alert("You cannot check both AMC and Service select either AMC or Service");
+                return false;
+            }
+        }
+        if (amcCheckbox.checked) {
+            const startDate = startDateInput.value;
+            const endDate = endDateInput.value;
+
+            if (!startDate) {
+                alert("AMC Start Date cannot be empty.");
+                startDateInput.focus();
+                return false;
+            }
+            if (new Date(startDate) &gt;= new Date(endDate)) {
+                alert("AMC Start Date must be before AMC End Date.");
+                startDateInput.focus();
+                return false;
+            }
+        }
+        if(startDateInput.value){
+            if(!amcCheckbox.checked){
+                alert("Please Check AMC");
+                return false;
+            }
+        }
+        if(endDateInput.value){
+            if(!startDateInput.value){
+                alert("Clear End date");
+                return false;
+            }
+        }
+        
+        if (renew_date.value) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);  // ignore time
+            const renewDate = new Date(renew_date.value);
+
+            if (renewDate &lt; today) {
+                alert("Renew Date cannot be earlier than today.");
+                renew_date.focus();
+                return false;
+            }
+
+            
+        }
+    const renewDate = new Date(renew_date.value);
+    const renew = document.getElementById("renew");
+    if(renew.checked){
+            if(!renew_date.value){
+                alert("Please fill renew date");
+                renew_date.focus();
+                return false;
+            }
+        }
+    var stage9Checked = $("#stage9").is(":checked");
+    var clientId = $("#client_id").val();
+
+ 
+    if (stage9Checked &amp;&amp; !stage9FormChanged) {
+        $.ajax({
+            url: "/update/stage9/proceed",
+            method: "POST",
+            data: {
+                client_id: clientId,
+                stage9: true
+            },
+            success: function (res) {
+                if (res.success) {
+                    alert("Stage 9 updated successfully!");
+                    location.reload();
+                } else {
+                    location.reload();
+                }
+            },
+            error: function () {
+                alert("Something went wrong while saving Stage 9.");
+            }
+        });
+    } else if(stage9FormChanged){
+        alert("Please save the changes with follow description before marking it completed.");
+    }
+        
+        
+        return true;
+        
+
+        
+    }
+    
+                                <!-- ================ stage 9 proceed click =============== -->
+            function validatestage7(){
+                var stage7Checked = $("#stage7").is(":checked");
+    var clientId = $("#client_id").val();
+
+ 
+    if (stage7Checked &amp;&amp; !stage7FormChanged) {
+        $.ajax({
+            url: "/update/stage7/proceed",
+            method: "POST",
+            data: {
+                client_id: clientId,
+                stage7: true
+            },
+            success: function (res) {
+                if (res.success) {
+                    alert("Stage 7 updated successfully!");
+                    location.reload();
+                } else {
+                    location.reload();
+                }
+            },
+            error: function () {
+                alert("Something went wrong while saving Stage 7.");
+            }
+        });
+    } else if(stage7FormChanged){
+        alert("Please save the changes with follow description before marking it completed.");
+    }
+            }
+
+
+            function validateStage6(){
+                var stage6Checked = $("#stage6").is(":checked");
+    var clientId = $("#client_id").val();
+
+ 
+    if (stage6Checked &amp;&amp; !stage6FormChanged) {
+        $.ajax({
+            url: "/update/stage6/proceed",
+            method: "POST",
+            data: {
+                client_id: clientId,
+                stage6: true
+            },
+            success: function (res) {
+                if (res.success) {
+                    alert("Stage 6 updated successfully!");
+                    location.reload();
+                } else {
+                    location.reload();
+                }
+            },
+            error: function () {
+                alert("Something went wrong while saving Stage 6.");
+            }
+        });
+    } else if(stage6FormChanged){
+        alert("Please save the changes with follow description before marking it completed.");
+    }
+            }
+
+            function validateStage5(){
+                var stage5Checked = $("#stage5").is(":checked");
+    var clientId = $("#client_id").val();
+
+ 
+    if (stage5Checked &amp;&amp; !stage5FormChanged) {
+        $.ajax({
+            url: "/update/stage5/proceed",
+            method: "POST",
+            data: {
+                client_id: clientId,
+                stage5: true
+            },
+            success: function (res) {
+                if (res.success) {
+                    alert("Stage 5 updated successfully!");
+                    location.reload();
+                } else {
+                    location.reload();
+                }
+            },
+            error: function () {
+                alert("Something went wrong while saving Stage 5.");
+            }
+        });
+    } else if(stage5FormChanged){
+        alert("Please save the changes with follow description before marking it completed.");
+    }
+            }
+            
+            
+            function validateStage4(){
+                var stage4Checked = $("#stage4").is(":checked");
+    var clientId = $("#client_id").val();
+
+ 
+    if (stage4Checked &amp;&amp; !stage4FormChanged) {
+        $.ajax({
+            url: "/update/stage4/proceed",
+            method: "POST",
+            data: {
+                client_id: clientId,
+                stage4: true
+            },
+            success: function (res) {
+                if (res.success) {
+                    alert("Stage 4 updated successfully!");
+                    location.reload();
+                } else {
+                    location.reload();
+                }
+            },
+            error: function () {
+                alert("Something went wrong while saving Stage 4.");
+            }
+        });
+    } else if(stage4FormChanged) {
+        alert("Please save the changes with follow description before marking it completed.");
+    }
+            }
+            
+            function validatestage1(){
+                var stage1Checked = $("#stage1").is(":checked");
+    var clientId = $("#client_id").val();
+
+ 
+    if (stage1Checked &amp;&amp; !stage1FormChanged) {
+        $.ajax({
+            url: "/update/stage1/proceed",
+            method: "POST",
+            data: {
+                client_id: clientId,
+                stage1: true
+            },
+            success: function (res) {
+                if (res.success) {
+                    alert("Stage 1 updated successfully!");
+                    location.reload();
+                } else {
+                    location.reload();
+                }
+            },
+            error: function () {
+                alert("Something went wrong while saving Stage 1.");
+            }
+        });
+    } else if(stage1FormChanged){
+        alert("Please save the changes with follow description before marking it completed.");
+    }
+            }
+            
+
+            </script>
+        </t>
+    </template>
+
+
+
+</odoo>

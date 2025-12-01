@@ -1,0 +1,388 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <template id="stag_website_layouts" inherit_id="website.layout">
+
+    <!-- Replace the default header -->
+    <xpath expr="//header" position="replace">
+          <!-- <header style="background-color: #343a40; color: white; padding: 15px 0;">
+        <div class="container d-flex justify-content-between align-items-center">
+            <h1 style="margin: 0; font-size: 1.75rem;">My Website</h1>
+            <nav>
+                <a href="/" style="color: white; margin-right: 20px;">Home</a>
+                <a href="/about" style="color: white; margin-right: 20px;">About</a>
+                <a href="/contact" style="color: white;">Contact</a>
+            </nav>
+        </div>
+      </header> -->
+      <!-- <t t-if="not request.httprequest.path.startswith('/web')">
+
+      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    </t> -->
+      <t t-if="'/web/login' not in request.httprequest.path">
+
+      <header class="d-flex justify-content-between align-items-center bg-white">
+                
+                <t t-set="user" t-value="request.env.user"/>
+                <t t-set="user_image" t-value="user.image_1920"/>
+                <t t-set="user_name" t-value="user.name"/>
+                <div class="mb-4">
+            <div class="logo">
+              <img src="https://crm.vielevators.com/website_asset/stag_logo_2.png" alt="logo" class="sitelogo"/>
+            </div>
+          </div>
+          <h5 id="user_namee" style="
+                        position: relative;
+                        margin-left: 155px;
+                    ">
+                 Hello, <t t-esc="user_name"/> (<t t-set="role_names" 
+   t-value="', '.join([g.name for g in request.env.user.groups_id if g.ismy])"/>
+<t t-esc="role_names or 'No Group'"/>)
+                </h5>
+                <t t-if="request.session.get('original_uid')">
+                  <div class="d-flex align-items-center gap-2" >
+                      <a href="/users/stop_impersonate" class="btn btn-warning btn-sm">
+                          Stop Impersonation
+                      </a>
+                  </div>
+              </t>
+                <div class="d-flex align-items-center gap-1 cursor-pointer">
+                  <div class="dropdown">
+                    <span class="dropdown-toggle p-2" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                      <!-- <img t-att-src="'data:image/png;base64,%s' % user_image if user_image else '/web/static/src/img/user_avatar.png'" class="rounded-circle" alt="user" width="40" /> -->
+                      <img t-att-src="'/web/image?model=res.users&amp;id=%d&amp;field=image_1920' % user.id"
+     class="rounded-circle" alt="User Image" width="40"/>
+                      <!-- <img t-att-src="'data:image/png;base64,%s' % user_image if user_image else 'https://via.placeholder.com/40'" class="rounded-circle" alt="user" width="40"/> -->
+
+
+
+                    </span>
+                    
+                    <ol class="dropdown-menu user" aria-labelledby="profileDropdown">
+                      <li>
+                        <a class="dropdown-item" href="/Dashboard">
+                          <t t-esc="user_name"/>
+                        </a>
+                      </li>
+                      <li>
+                        <a class="dropdown-item change-password" href="javascript:void(0);">
+                          Change Password
+                        </a>
+                      </li>
+
+                      <li>
+                        <a class="dropdown-item" href="/web/session/logout">Logout</a>
+                      </li>
+                    </ol>
+                  </div>
+                  <span class="d-md-none toggle-btn p-2 menu-icon" onclick="toggleSidebar()">
+                    <i class="bi bi-list"></i>
+                  </span>
+                </div>
+                <a href="/web/session/logout" class="btn btn-danger btn-sm">Logout</a>
+
+              </header>
+              </t>
+              <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  
+              <div class="modal fade" id="changePwdModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Change Password</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group mb-2">
+            <label>New Password</label>
+            <input type="password" id="new_pwd" class="form-control"/>
+          </div>
+          <div class="form-group mb-2">
+            <label>Confirm Password</label>
+            <input type="password" id="confirm_pwd" class="form-control"/>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" id="savePwdBtn" class="btn btn-primary">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      document.querySelectorAll(".change-password").forEach(function (el) {
+        el.addEventListener("click", function () {
+          const modal = new bootstrap.Modal(document.getElementById("changePwdModal"));
+          modal.show();
+
+          document.getElementById("savePwdBtn").onclick = async function () {
+            const newp = document.getElementById("new_pwd").value;
+            const confirm = document.getElementById("confirm_pwd").value;
+
+            if (newp !== confirm) {
+              alert("New passwords do not match!");
+              return;
+            }
+
+            let response = await fetch("/my/change_password", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                new_password: newp,
+                confirm_password: confirm,
+              }),
+            });
+
+            if (response.ok) {
+              alert("Password changed successfully. Please log in again.");
+              window.location.href = "/web/session/logout";
+            } else {
+              alert("Error changing password.");
+            }
+          };
+        });
+      });
+    });
+  </script>
+
+    </xpath>
+
+    <!-- Replace the default footer -->
+    <xpath expr="//footer" position="replace">
+    <!-- <t t-if="'/web/login' not in request.httprequest.path">
+        <footer>
+                <p class="text-center p-4">
+             Stage Elevator 2025. All Right Reserved.
+                </p>
+              </footer>
+              </t> -->
+    </xpath>
+
+    <xpath expr="//main" position="replace">
+        <!-- <t t-if="'/web/login' not in request.httprequest.path"> -->
+        <t t-if="request and request.httprequest and not request.httprequest.path.startswith('/web/login')">
+
+        
+        
+
+      <div class="row">
+
+        <aside class="col-md-3 sidebar" id="sidebar">
+          <!-- <t t-set="crm_group" t-value="request.env.user.groups_id.filtered(lambda g: g.name == 'crm')"/>
+          <t t-set="sales_group" t-value="request.env.user.groups_id.filtered(lambda g: g.name == 'sales')"/> -->
+          <t t-set="admin_items" t-value="
+              request.env.user.groups_id.filtered(
+                lambda g: g.ismy and request.env['ir.model.access'].sudo().search([
+                  ('group_id', '=', g.id),
+                  ('model_id.model', 'in', [
+                    'res.groups',
+                    'res.city',
+                    'ir.model.access',
+                    'res.users',
+                    'crm.stage',
+                    'ir.attachment'
+                  ]),
+                  ('perm_read', '=', True)
+                ], limit=1)
+              )
+          "/>
+          <t t-set="sales_items" t-value="
+              request.env.user.groups_id.filtered(
+                lambda g: g.ismy and request.env['ir.model.access'].sudo().search([
+                  ('group_id', '=', g.id),
+                  ('model_id.model', 'in', [
+                    'crm.lead',
+                    'lead.followup',
+                  ]),
+                  ('perm_read', '=', True)
+                ], limit=1)
+              )
+          "/>
+          <menu class="ps-0 p-3">
+            <ul class="list-unstyled">
+              <li>
+                <a href="/Dashboard">
+                  <span class="pe-1">
+                    <i class="bi bi-speedometer"/>
+                  </span>
+                  Dashboard
+                </a>
+              </li>
+              <t t-if="admin_items">
+              <li>
+                <a href="#adminSubmenu" data-bs-toggle="collapse" aria-expanded="false" class="dropdown-toggle" >
+                  <span class="pe-1">
+                    <i class="bi bi-shield-check"/>
+                  </span>
+                  Admin
+                  <!-- <i class="bi bi-chevron-down ms-auto" style="
+    position: relative;
+    padding-left: 22px;
+"></i> -->
+                </a>
+                <ul class="collapse list-unstyled submenu" id="adminSubmenu">
+                  <t t-if=" request.env.user.groups_id.filtered(
+                      lambda g: g.ismy and request.env['ir.model.access'].sudo().search([
+                          ('group_id', '=', g.id),
+                          ('model_id.model', '=', 'res.groups'),
+                          ('perm_read', '=', True)
+                      ], limit=1)
+                  )">
+                    <li><a href="/user_permission/list">User Role</a></li>
+                  </t>
+                  <t t-if=" request.env.user.groups_id.filtered(
+                      lambda g: g.ismy and request.env['ir.model.access'].sudo().search([
+                          ('group_id', '=', g.id),
+                          ('model_id.model', '=', 'res.city'),
+                          ('perm_read', '=', True)
+                      ], limit=1)
+                  )">
+                    <li><a href="/city/list">City Creation</a></li>
+                  </t>
+                  <t t-if=" request.env.user.groups_id.filtered(
+                      lambda g: g.ismy and request.env['ir.model.access'].sudo().search([
+                          ('group_id', '=', g.id),
+                          ('model_id.model', '=', 'ir.model.access'),
+                          ('perm_read', '=', True)
+                      ], limit=1)
+                  )">
+                    <li><a href="/user_permissions">User Permissions</a></li>
+                  </t>
+                  <t t-if=" request.env.user.groups_id.filtered(
+                      lambda g: g.ismy and request.env['ir.model.access'].sudo().search([
+                          ('group_id', '=', g.id),
+                          ('model_id.model', '=', 'res.users'),
+                          ('perm_read', '=', True)
+                      ], limit=1)
+                  )">
+                    <li><a href="/users">User Creation</a></li>
+                  </t>
+                  <t t-if=" request.env.user.groups_id.filtered(
+                      lambda g: g.ismy and request.env['ir.model.access'].sudo().search([
+                          ('group_id', '=', g.id),
+                          ('model_id.model', '=', 'crm.stage'),
+                          ('perm_read', '=', True)
+                      ], limit=1)
+                  )">
+                    <li><a href="/lead_stage/list">Lead Stages</a></li>
+                  </t>
+                  <t t-if=" request.env.user.groups_id.filtered(
+                      lambda g: g.ismy and request.env['ir.model.access'].sudo().search([
+                          ('group_id', '=', g.id),
+                          ('model_id.model', '=', 'ir.attachment'),
+                          ('perm_read', '=', True)
+                      ], limit=1)
+                  )">
+                    <li><a href="/quotation/list">Quotations</a></li>
+                  </t>
+                </ul>
+              </li>
+              </t>
+              <t t-if="sales_items">
+              <!-- <t t-if="not crm_group"> -->
+              <li>
+                <a href="#leadsSubmenu" data-bs-toggle="collapse" aria-expanded="false"  class="dropdown-toggle" >
+                  <span class="pe-1">
+                    <i class="bi bi-people"/>
+                  </span>
+                  Leads
+                  <!-- <i class="bi bi-chevron-down ms-auto" style="
+    position: relative;
+    padding-left: 29px;
+"></i> -->
+                </a>
+                <ul class="collapse list-unstyled submenu" id="leadsSubmenu">
+                  <t t-if=" request.env.user.groups_id.filtered(
+                      lambda g: g.ismy and request.env['ir.model.access'].sudo().search([
+                          ('group_id', '=', g.id),
+                          ('model_id.model', '=', 'crm.lead'),
+                          ('perm_read', '=', True)
+                      ], limit=1)
+                  )">
+                    <li><a href="/opportunities">Opportunity Creation</a></li>
+                  </t>
+                  <t t-if=" request.env.user.groups_id.filtered(
+                      lambda g: g.ismy and request.env['ir.model.access'].sudo().search([
+                          ('group_id', '=', g.id),
+                          ('model_id.model', '=', 'lead.followup'),
+                          ('perm_read', '=', True)
+                      ], limit=1)
+                  )">
+                    <li><a href="/lead_followups">Leads Followups</a></li>
+                  </t>
+                </ul>
+              </li>
+              </t>
+              
+              
+              <!-- <t t-if="not sales_group"> -->
+              <t t-if=" request.env.user.groups_id.filtered(
+                      lambda g: g.ismy and request.env['ir.model.access'].sudo().search([
+                          ('group_id', '=', g.id),
+                          ('model_id.model', '=', 'crm.client'),
+                          ('perm_read', '=', True)
+                      ], limit=1)
+                  )">
+              <li>
+                <a href="/crm_client/list">
+                  <span class="pe-1">
+                    <i class="bi bi-person-lines-fill"/>
+                  </span>
+                  CRM
+                </a>
+              </li>
+              </t>
+              <t t-if=" request.env.user.groups_id.filtered(
+                      lambda g: g.ismy and request.env['ir.model.access'].sudo().search([
+                          ('group_id', '=', g.id),
+                          ('model_id.model', '=', 'production.client'),
+                          ('perm_read', '=', True)
+                      ], limit=1)
+                  )">
+              <li>
+                <a href="/production/list">
+                  <span class="pe-1">
+                    <i class="bi bi-box-seam"/>
+                  </span>
+                  Production
+                </a>
+              </li>
+              </t>
+              
+            </ul>
+          </menu>
+        </aside>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/> 
+        <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script> -->
+        
+        
+
+
+
+        <div class="col-md-9 o_website_content">
+          <t t-raw="0"/>
+        </div>
+
+    </div>
+  </t>
+  <t t-else="">
+    <t t-raw="0"/>
+  </t>
+    </xpath>
+    
+  
+
+    
+
+
+  </template>
+  <template id="include_bootstrap_icons_front" inherit_id="website.layout" name="Bootstrap Icons Frontend">
+    <xpath expr="//head" position="inside">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
+    </xpath>
+</template>
+
+  
+</odoo>
+
+

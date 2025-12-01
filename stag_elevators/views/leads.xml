@@ -1,0 +1,683 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <template id="opportunity_list_template" name="Opportunity List Template">
+        <t t-call="website.layout">
+            <div class="container mt-4 mb-4">
+                <!-- <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2 class="mb-0">Opportunity</h2>
+                    <div class="d-flex gap-2">
+                        <a href="/Dashboard" class="btn btn-dark">← Back</a>
+                        <a href="/opportunities/create" class="btn btn-dark">+ Create</a>
+                        <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#importLeadModal">
+                            <i class="fa fa-upload"></i> Import Leads
+                        </button>
+                    </div>
+                </div> -->
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <!-- Breadcrumb -->
+                    <nav aria-label="breadcrumb" class="mb-0">
+                        <ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item">
+                                <a href="/Dashboard">
+                                    <i class="bi bi-house-door"></i> Home</a>
+                            </li>
+                            <li class="breadcrumb-item active" aria-current="page">
+                            Opportunity
+                            </li>
+                        </ol>
+                    </nav>
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex gap-2">
+                        <a href="/Dashboard" class="btn btn-dark">← Back</a>
+                        <a href="/opportunities/create" class="btn btn-dark">+ Create</a>
+                        <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#importLeadModal">
+                            <i class="fa fa-upload"></i> Import Leads
+                        </button>
+                        <a href="/download/lead_template" class="btn btn-sm btn-outline-secondary" title="Download Template">
+                            <i class="fa fa-download"></i>
+                        </a>
+
+                        <button id="assignAll" class="btn btn-success">Assign</button>
+                    </div>
+                </div>
+
+                <div><div style="padding:15px; background:white;">
+                <table id="opportunityTable" class="table table-bordered table-striped display" style="width:100%">
+                    <thead>
+                        <tr>
+                            <!-- <th><input type="checkbox" id="selectAll"/></th> -->
+                            <th>S No</th>
+                            <th>Stage</th>
+                            <th>Lead Name</th>
+                            <th>Mobile</th>
+                            <!-- <th>Alternate Mobile</th> -->
+                            <th>Email</th>
+                            <th>Location</th>
+                            <th>Assigned To</th>
+                            <th>Description</th>
+                            <th>Source</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-set="counter" t-value="0"/>
+                        <t t-foreach="leads" t-as="lead">
+                            <t t-set="counter" t-value="counter + 1"/>
+                            <tr t-att-data-id="lead.id"
+    t-attf-class="#{ 'table-danger duplicate-row' if lead.is_duplicate else '' }">
+
+                                <!-- <td><input type="checkbox" class="row-checkbox"/></td> -->
+                                <td><t t-esc="counter"/> 
+                                    <a t-att-href="'/opportunity/transfer/%s' % lead.id" title="Transfer Lead">
+                                        <i class="fa fa-retweet text-success"></i>
+                                    </a>
+                                </td>
+                                <td>
+                                
+                                <t t-esc="lead.stage_id.name or ''"/>
+                                
+                                </td>
+                                <!-- <td> -->
+                                <!-- <t t-esc="lead.name"/> -->
+                                    <!-- <span t-att-title="(lead.message_ids.filtered(lambda m: m.message_type == 'email').sorted(key=lambda m: m.date)[:1].body or '') or 'None'">
+    <t t-esc="lead.name"/>
+</span> -->
+
+
+
+
+
+
+                                <!-- </td> -->
+                               <td>
+                               <t t-if="lead.name">
+                               <a t-att-href="'/lead_followups/edit/%d' % lead.followup_ids.id">
+    <span t-att-data-bs-toggle="'popover'"
+          t-att-data-bs-html="'true'"
+          t-att-data-bs-trigger="'hover focus'"
+          t-att-data-bs-content="lead.message_ids.filtered(lambda m: m.message_type == 'email') and lead.message_ids.filtered(lambda m: m.message_type == 'email').sorted(key=lambda m: m.date)[0].body or 'No email'">
+        <t t-esc="lead.name"/>
+    </span>
+    </a>
+    </t>
+</td>
+
+
+                                <td><t t-esc="lead.phone"/></td>
+                                <!-- <td><t t-esc="lead.phone or ''"/></td> -->
+                                <td><t t-esc="lead.email_from"/></td>
+                                <td><t t-esc="lead.city or ''"/></td>
+                                <td class="align-middle">
+                                    <div class="d-flex flex-column gap-1">
+                                        <t t-if="request.env.user.groups_id.filtered(lambda g: g.ismy and g.is_admin)">
+                                        <!-- Checkbox with tooltip + label -->
+                                        <div class="form-check d-flex align-items-center">
+                                            <input type="checkbox" class="row-checkbox form-check-input me-2"
+                                                   data-bs-toggle="tooltip" data-bs-placement="top"
+                                                   title="Check this box to change the assigned employee"/>
+                                            <label class="form-check-label" style="font-size: 12px; font-weight: 600;">
+                                                Change Employee
+                                            </label>
+                                        </div>
+                                        </t>
+                                
+                                        <!-- Assigned user text -->
+                                        <span class="assigned-text text-muted small ps-1">
+                                            <t t-esc="lead.user_id.name or '-- Not Assigned --'"/>
+                                        </span>
+                                
+                                        <!-- Dropdown (hidden until checkbox is ticked) -->
+                                        <select class="form-select assign-dropdown d-none form-select-sm">
+                                            <option value="" t-att-selected="not lead.user_id.id and 'selected' or None">-- Select --</option>
+                                            <t t-foreach="users" t-as="user">
+                                                <option t-att-value="user.id" 
+                                                        t-att-selected="lead.user_id.id == user.id and 'selected' or None">
+                                                    <t t-esc="user.name"/>
+                                                </option>
+                                            </t>
+                                        </select>
+                                    </div>
+                                </td>
+                                <td><t t-esc="lead.description or ''"/></td>
+                                <td><t t-esc="lead.create_uid.name or ''"/></td>
+                            </tr>
+                        </t>
+                    </tbody>
+
+                </table>
+                </div></div>
+            </div> 
+
+            <!-- Import Modal -->
+            <div class="modal fade" id="importLeadModal" tabindex="-1" aria-labelledby="importLeadModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <form action="/import/leads/submit" method="post" enctype="multipart/form-data">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="importLeadModalLabel">Import Leads</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+
+                            <div class="modal-body">
+                                <p>Please upload a <strong>.csv</strong> or <strong>.xlsx</strong> file.</p>
+                                <input type="file" name="file" accept=".csv,.xlsx" class="form-control" required="true"/>
+                            </div>
+
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn btn-primary">Upload</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal fade" id="waitModal" tabindex="-1" aria-hidden="true" 
+                 data-bs-backdrop="static" data-bs-keyboard="false">
+                <div class="modal-dialog modal-sm modal-dialog-centered">
+                    <div class="modal-content p-3 d-flex flex-column justify-content-center align-items-center">
+                        <!-- Centered Spinner -->
+                        <div class="spinner-border text-primary mb-3" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <h6 class="mb-0">Please wait...</h6>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Libraries -->
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
+            <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/jquery.dataTables.min.css"/>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+
+            <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+            <script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
+
+            <script>
+              <!-- $(document).ready(function () {
+                var seenPhones = {};
+
+                $('#opportunityTable').DataTable({
+                    "rowCallback": function (row, data, index) {
+                        var phone = data[3].trim();  // Phone column (index 3)
+                        if (phone) {
+                            if (seenPhones[phone]) {
+                                $(row).addClass('duplicate-highlight');
+                                $(seenPhones[phone]).addClass('duplicate-highlight');
+                            } else {
+                                seenPhones[phone] = row;
+                            }
+                        }
+                    }
+                });
+            }); -->
+
+<!-- working solution -->
+
+            <!-- $(document).ready(function () {
+
+              $('#opportunityTable').DataTable();
+
+              $('#assignAll').on('click', function () {
+                  var assignments = [];
+
+                  $('#opportunityTable tbody tr').each(function () {
+                      var leadId = $(this).data('id');
+                      var userId = $(this).find('.assign-dropdown').val();
+
+                      if (userId) {
+                          assignments.push({lead_id: leadId, user_id: userId});
+                      }
+                  });
+
+                  if (assignments.length === 0) {
+                      alert("⚠️ Please select at least one user to assign.");
+                      return;
+                  }
+
+                  $.ajax({
+                      url: '/opportunity/assign/bulk',
+                      type: 'POST',
+                      data: JSON.stringify({assignments: assignments}),
+                      contentType: 'application/json',
+                      success: function (response) {
+                          alert("✅ Assignments updated successfully!");
+                          location.reload();
+                      },
+                      error: function () {
+                          alert("❌ Error updating assignments!");
+                      }
+                  });
+              }); -->
+
+              <!-- $(document).on('change', '.assign-dropdown', function () {
+                  var row = $(this).closest('tr');
+                  var leadId = row.data('id');
+                  var userId = $(this).val();
+
+                  if (userId) {
+                      $.ajax({
+                          url: '/opportunity/assign/single',
+                          type: 'POST',
+                          data: JSON.stringify({lead_id: leadId, user_id: userId}),
+                          contentType: 'application/json',
+                          success: function () {
+                              console.log("Lead " + leadId + " assigned to " + userId);
+                          },
+                          error: function () {
+                              alert("❌ Failed to assign user!");
+                          }
+                      });
+                  }
+              }); -->
+          <!-- }); -->
+
+          $(document).ready(function () {
+    var seenPhones = {};
+    $('#opportunityTable').DataTable({
+        "columnDefs": [
+            { "searchable": false, "targets": [7] } 
+        ],
+        "order": [[0, "desc"]],  
+        <!-- "rowCallback": function (row, data, index) {
+            var phone = (data[3] || '').trim(); 
+
+            if (phone) {
+                if (seenPhones[phone]) {
+                    $(row).addClass('duplicate-highlight');
+                } else {
+                    seenPhones[phone] = row; // store original but don't highlight it
+                }
+            }
+        },
+        "drawCallback": function(settings) {
+            // Reset seenPhones every time table is redrawn
+            seenPhones = {};
+            var api = this.api();
+
+            api.rows({ page: 'current' }).every(function() {
+                var data = this.data();
+                var row = this.node();
+                var phone = (data[3] || '').trim();
+
+                if (phone) {
+                    if (seenPhones[phone]) {
+                        // Highlight only the duplicate row
+                        $(row).addClass('duplicate-highlight');
+                    } else {
+                        seenPhones[phone] = row; // store original row
+                    }
+                }
+            });
+        } -->
+    });
+
+
+
+$(function () {
+    $('[data-bs-toggle="popover"]').popover({
+        container: 'body'
+    });
+});
+
+
+    $('#selectAll').on('change', function () {
+        $('.row-checkbox').prop('checked', $(this).is(':checked'));
+    });
+
+    $(document).on('change', '.row-checkbox', function () {
+        var row = $(this).closest('tr');
+        if ($(this).is(':checked')) {
+            row.find('.assigned-text').addClass('d-none');   // hide text
+            row.find('.assign-dropdown').removeClass('d-none'); // show dropdown
+        } else {
+            row.find('.assign-dropdown').addClass('d-none'); // hide dropdown
+            row.find('.assigned-text').removeClass('d-none'); // show text
+        }
+    });
+
+    $('#selectAll').on('change', function () {
+        var checked = $(this).is(':checked');
+        $('.row-checkbox').prop('checked', checked).trigger('change');
+    });
+
+    $('#assignAll').on('click', function () {
+        var assignments = [];
+
+        $('#opportunityTable tbody tr').each(function () {
+            if ($(this).find('.row-checkbox').is(':checked')) {
+                var leadId = $(this).data('id');
+                var userId = $(this).find('.assign-dropdown').val();
+
+                if (userId) {
+                    assignments.push({lead_id: leadId, user_id: userId});
+                }
+            }
+        });
+
+        if (assignments.length === 0) {
+            alert("⚠️ Please select at least one row and assign a user.");
+            return;
+        }
+        var waitModal = new bootstrap.Modal(document.getElementById('waitModal'));
+        waitModal.show();
+
+        $.ajax({
+            url: '/opportunity/assign/bulk',
+            type: 'POST',
+            data: JSON.stringify({assignments: assignments}),
+            contentType: 'application/json',
+            success: function (response) {
+                waitModal.hide();
+                <!-- alert("✅ Assignments updated successfully!"); -->
+                location.reload();
+            },
+            error: function () {
+                waitModal.hide();
+                alert("❌ Error updating assignments!");
+            }
+        });
+    });
+});
+
+            
+        </script>
+
+        </t>
+    </template>
+    <template id="duplicate_lead_template">
+    <t t-call="website.layout">
+        <div class="container mt-4">
+            <div class="alert alert-danger text-center">
+            <h5>⚠ Duplicate Lead Found</h5>
+            <p>A lead with phone <strong><t t-esc="phone"/></strong> already exists.</p>
+            <p>
+                
+                <a href="/opportunities" class="btn btn-secondary">Back</a>
+            </p>
+            </div>
+        </div>
+        </t>
+        </template>
+
+
+    <template id="opportunity_create_template" name="Opportunity Create Template">
+        <t t-call="website.layout">
+            <div class="container mt-4 mb-4">
+                <!-- <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2>Opportunity</h2>
+                    <a href="/opportunities" class="btn btn-dark">← Back</a>
+                </div> -->
+
+                <t t-if="request.params.get('error') == 'lead_duplicate'"> 
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            This lead already exists. 
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                </t>
+                
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <!-- Breadcrumb -->
+                    <nav aria-label="breadcrumb" class="mb-0">
+                        <ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item">
+                                <a href="/Dashboard">
+                                    <i class="bi bi-house-door"></i> Home</a>
+                            </li>
+                            <li class="breadcrumb-item" aria-current="page">
+                            <a href="/opportunities">
+                            Opportunity
+                            </a>
+                            </li>
+                            <li class="breadcrumb-item active" aria-current="page">
+                            Create
+                            </li>
+                        </ol>
+                    </nav>
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex gap-2">
+                        <a href="/opportunities" class="btn btn-dark">← Back</a>
+                    </div>
+                </div>
+                
+
+                <form action="/opportunities/submit" method="post">
+                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+
+                    <div class="mb-3">
+                        <label class="form-label">Lead Name</label>
+                        <input type="text" name="name" class="form-control" placeholder="Lead Name" required="true"/>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Lead Mobile</label>
+                        <input type="text" name="phone" class="form-control" placeholder="Lead Mobile" required="true"/>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Lead Alternate Mobile</label>
+                        <input type="text" name="alt_phone" class="form-control" placeholder="Alternate Mobile" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Lead Email</label>
+                        <input type="email" name="email" class="form-control" placeholder="Lead Email" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Lead Location</label>
+                        <select name="city" class="form-control">
+                            <option value="">Select Location</option>
+                            <t t-foreach="locations" t-as="loc">
+                                <option t-att-value="loc.name"><t t-esc="loc.name"/></option>
+                            </t>
+                        </select>
+                    </div>
+                    <t t-if="request.env.user.groups_id.filtered(lambda g: g.ismy and g.is_admin)">
+                        <div class="mb-3">
+                            <label class="form-label">Assign To</label>
+                            <select name="user_id" class="form-control">
+                                <option value="">Select Staff</option>
+                                <t t-foreach="users" t-as="user">
+                                    <option t-att-value="user.id"><t t-esc="user.name"/></option>
+                                </t>
+                            </select>
+                        </div>
+                    </t>
+
+                    <div class="mb-3">
+                        <label class="form-label">Lead Description</label>
+                        <textarea name="description" class="form-control" placeholder="Lead Description"></textarea>
+                    </div>
+
+                    <div class="d-flex justify-content-end">
+                        <button type="submit" class="btn btn-dark me-2">Submit</button>
+                        <a href="/opportunities" class="btn btn-light">Cancel</a>
+                    </div>
+                </form>
+                <!-- Duplicate Lead Modal -->
+<!-- <div class="modal fade" id="duplicateLeadModal" tabindex="-1" aria-labelledby="duplicateLeadModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="duplicateLeadModalLabel">⚠ Duplicate Lead Found</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        A lead with this phone number already exists.<br/>
+        <strong id="duplicatePhone"></strong>
+        <div class="mt-2" id="existingLeadLink"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div> -->
+
+            </div>
+        </t>
+        <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script> -->
+
+        <!-- <script>
+document.addEventListener("DOMContentLoaded", function() {
+    const form = document.querySelector("form[action='/opportunities/submit']");
+    if (!form) return;
+
+    form.addEventListener("submit", function(e) {
+        e.preventDefault();
+
+        const phone = form.querySelector("input[name='phone']").value;
+        const csrf = form.querySelector("input[name='csrf_token']").value;
+
+        if (!phone) {
+            form.submit();
+            return;
+        }
+
+       fetch("/opportunities/check_duplicate", {
+    method: "POST",
+    headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: new URLSearchParams({
+        phone: phone,
+        csrf_token: csrf,
+    }),
+})
+
+
+        .then(res =&gt; res.json())
+        .then(data =&gt; {
+            if (data.exists) {
+                document.getElementById("duplicatePhone").textContent = "Phone: " + data.phone;
+                
+                let modal = new bootstrap.Modal(document.getElementById("duplicateLeadModal"));
+                modal.show();
+            } else {
+                form.submit();
+            }
+        })
+        .catch(err =&gt; {
+            console.error("Duplicate check failed:", err);
+            form.submit(); // fallback
+        });
+    });
+});
+</script> -->
+
+
+
+    </template>
+    <template id="transfer_lead_template" name="Transfer Lead">
+        <t t-call="website.layout">
+            <div class="container mt-4 mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2>Opportunity</h2>
+                    <a href="/opportunities" class="btn btn-dark">← Back</a>
+                </div>
+
+                <form action="/opportunity/transfer/submit" method="post">
+                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                    <input type="hidden" name="lead_id" t-att-value="lead.id"/>
+
+                    <div class="mb-3">
+                        <label class="form-label">Lead Name</label>
+                        <input type="text" class="form-control" disabled="disabled" t-att-value="lead.name"/>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Lead Mobile</label>
+                        <input type="text" class="form-control" disabled="disabled" t-att-value="lead.phone"/>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Lead Location</label>
+                        <select name="city" class="form-control">
+                            <t t-foreach="locations" t-as="loc">
+                                <option t-att-value="loc.name"
+                                        t-att-selected="loc.name == lead.city">
+                                    <t t-esc="loc.name"/>
+                                </option>
+                            </t>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Assign To</label>
+                        <select name="user_id" class="form-control">
+                            <t t-foreach="users" t-as="user">
+                                <option t-att-value="user.id"
+                                        t-att-selected="user.id == lead.user_id.id">
+                                    <t t-esc="user.name"/> (<t t-esc="user.lead_count"/> Leads)
+                                </option>
+                            </t>
+                        </select>
+                    </div>
+
+                    <div class="d-flex justify-content-end">
+                        <button type="submit" class="btn btn-dark me-2">Submit</button>
+                        <a href="/opportunities" class="btn btn-light">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </t>
+    </template>
+
+    <template id="lead_import_template" name="Lead Import Page">
+        <t t-call="website.layout">
+            <div class="container mt-5">
+                <h3 class="mb-3">Import Leads</h3>
+                <form action="/import/leads/submit" method="post" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="file" class="form-label">Upload CSV or Excel File (.csv / .xlsx)</label>
+                        <input type="file" name="file" class="form-control" required="true"/>
+                    </div>
+                    <button type="submit" class="btn btn-success">Import</button>
+                    <a href="/crm" class="btn btn-secondary">Cancel</a>
+                </form>
+            </div>
+        </t>
+    </template>
+
+    <template id="import_success_template">
+        <t t-call="website.layout">
+            <div class="container mt-5">
+            <div class="alert alert-success" role="alert">
+                <t t-esc="message"/>
+            </div>
+            <a href="/opportunities" class="btn btn-primary">Go to Opportunities</a>
+            </div>
+        </t>
+    </template>
+
+<template id="import_error_template" name="Import Error Template">
+    <t t-call="website.layout">
+        <div class="container mt-5">
+            <div class="alert alert-danger" role="alert">
+                <!-- <t t-esc="error"/> -->
+                <t t-if="error">
+                    <div class="alert alert-danger">
+                        <p><t t-esc="error"/></p>
+                        <ul>
+                        <t t-foreach="errors or []" t-as="err">
+                            <li><t t-esc="err"/></li>
+                        </t>
+                        </ul>
+                    </div>
+                    </t>
+
+            </div>
+            <a href="/opportunities" class="btn btn-secondary">Try Again</a>
+        </div>
+    </t>
+</template>
+
+
+
+
+
+
+</odoo>
